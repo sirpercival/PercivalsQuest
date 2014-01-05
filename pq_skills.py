@@ -30,7 +30,7 @@ def pq_trip(user, target):
     if hit > 0:
         hit = max([hit/2,1])
         targstring = "The monster is " if user.hasattr("player") else "You are "
-		print targstring+"tripped!", '\n'
+        print targstring+"tripped!", '\n'
         if "tripped" not in target.conditions:
             target.conditions["tripped"] = 2
         debuff = max([0,random.choice([random.randint(0,user.stats[5]) for i in range(0,6)]) + user.temp.get("Skill",0)])
@@ -43,7 +43,7 @@ def pq_missile(user, target):
     targstring = "You send " if user.hasattr("player") else "The monster sends "
     print targstring + str(num_missile)+" missiles!"
     hit = 0
-    for i in range(num_missile)
+    for i in range(num_missile):
         hit += max([0,atk_roll([0,user.stats[5]],[0,target.stats[2]],user.temp.get("Skill",0),target.temp.get("Reflex",0))])
     return hit
 
@@ -64,7 +64,7 @@ def pq_backstab(user, target):
 def pq_rage(user, target):
     """Perform a Rage -- a single attack with +Skill buff, and -2 Defense self-debuff for 2 rounds"""
     hit = atk_roll(user.atk,target.dfn,user.temp.get("Attack",0)+user.stats[5],target.temp.get("Defense",0))
-	user.temp_bonus(["Defense"],-2,4)
+    user.temp_bonus(["Defense"],-2,4)
     return hit
 
 def pq_poison(user, target):
@@ -85,7 +85,7 @@ def pq_charm(user, target):
     hit2 = atk_roll([0,user.stats[5]],[0,target.stats[4]],user.temp.get("Skill",0),target.temp.get("Mind",0))
     if hit1 > 0 and hit2 > 0:
         targstring = "The monster is " if user.hasattr("player") else "You are "
-		print targstring+"charmed!", '\n'
+        print targstring+"charmed!", '\n'
         if "charmed" not in target.conditions:
             target.conditions["charmed"] = 4
         return True
@@ -96,7 +96,7 @@ def pq_entangle(user, target):
     hit = atk_roll([0,user.stats[5]],[0,target.stats[2]],user.temp.get("Skill",0),target.temp.get("Reflex",0))
     if hit > 0:
         targstring = "The monster is " if user.hasattr("player") else "You are "
-		print targstring+"entangled!", '\n'
+        print targstring+"entangled!", '\n'
         if "entangled" not in target.conditions:
             target.conditions["entangled"] = 4
         target.temp_bonus(["Attack","Defense"],-hit,4)
@@ -109,7 +109,7 @@ def pq_fear(user, target):
     if hit > 0:
         hit = max([1,hit/2])
         targstring = "The monster is " if user.hasattr("player") else "You are "
-		print targstring+"frightened!", '\n'
+        print targstring+"frightened!", '\n'
         target.temp_bonus(["Attack","Defense"],-hit,4)
         return True
     return False
