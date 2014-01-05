@@ -212,9 +212,10 @@ class PQ_Combat(object):
     def pc_turn(self):
         """The player takes his/her turn. Joy."""
         print "Attack, "+", ".join(self.char.skills)+", Flee, or Equip", '\n'
-        action = choose_from_list("Action> ",["Attack",self.char.skills,"Flee","Sheet","Equip"],False)
-        while action == "Sheet":
-            self.char.tellchar()
+        action = choose_from_list("Action> ",["Attack",self.char.skills,"Help","Flee","Sheet","Equip"],False)
+        while action == "Sheet" or action == "Help":
+            if action == "Sheet": self.char.tellchar()
+            if action == "Help": pq_help()
             action = choose_from_list("Action> ",["Attack",self.char.skills,"Flee","Sheet","Equip"],False)
         if action == "Attack":
             self.attack_enemy(self.char,self.enemy)
@@ -224,11 +225,31 @@ class PQ_Combat(object):
             if not self.runaway(self.char):
                 self.advance_turn()
         elif action == "Equip":
-            self.char.equip()m
+            self.char.equip()
             self.advance_turn()
+            
+    def monster_turn(self):
+        """YAY THE ENEMY GOES... this handles the VERY SIMPLISTIC monster AI."""
+        if self.enemy.currentsp <= 0 or float(self.enemy.currenthp)/float(self.enemy.hp) < 0.1:
+            self.runaway(user) #try to escape if it gets too hairy
+        elif self.enemy.currentsp > 0: #yay we can use skills!
+            avail_skills = pq_dragonskills.values().remove('Petrify').remove('Flee').remove('Poison')
+            skills_ok = []
+            skills_ok.append(self.enemy.skill == 'Petrify' and self.enemy.skillcounter < -3
+            skills_ok.append(self.enemy.skill == 'Flee' and self.turn >= 2)
+            skills_ok.append(self.enemy.skill == 'Poison' and self.turn >= 2 and self.char.currenthp < self.char.hp)
+            if self.enemy.skillcounter < 0:
+                skills_ok.append(self.enemy.skill in avail_skills)
+            if sum(skills_ok):
+                print "The enemy uses "+self.enemy.skill+"!", '\n'
+                self.use_skill(self.enemy.skill,self.enemy,self.char)
+                self.enemy.skillcounter = 1
+        else:
+            print "It tries to cause you bodily harm!", '\n'
+            self.attack_enemy(self.enemy,self.character)
 		
 	def advance_turn(self):
-        """Advance the turn, decrementing counters on temporary effects and handling the VERY SIMPLISTIC monster AI."""
+        """Advance the turn, decrementing counters on temporary effects and adjudicating turn order."""
 		self.turn += 1
 		whos = self.turnorder[self.turn % 2]
 		self.enemy.skillcounter -= 1
@@ -249,14 +270,6 @@ class PQ_Combat(object):
             if self.enemy.conditions[i] <= 0:
                 del self.enemy.conditions[i]
 		if whos == 'monster':
-            if self.enemy.currentsp <= 0 or float(self.enemy.currenthp)/float(self.enemy.hp) < 0.1:
-                self.runaway(user)
-			if self.enemy.currentsp > 0 and ((self.enemy.skill == 'Petrify' and self.enemy.skillcounter < -2) or self.enemy.skillcounter < 0):
-				print "The enemy uses "+self.enemy.skill+"!", '\n'
-				self.use_skill(self.enemy.skill,self.enemy,rpg.character)
-				self.enemy.skillcounter = 1 if self.enemy.skill != 'Flee' else -1
-			else:
-				print "It tries to cause you bodily harm!", '\n'
-				self.attack_enemy(self.enemy,self.character)
+            self.monster_turn()
         else:
             self.pc_turn()
