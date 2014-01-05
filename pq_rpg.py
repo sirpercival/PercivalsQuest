@@ -27,7 +27,7 @@ class PQ_RPG(object):
 		self.quest = {}
 		self.store = [pq_gear['rarmor'][random.choice(pq_gear['rarmor'].keys())][0],
             pq_gear['rweapon'][random.choice(pq_gear['rweapon'].keys())][0]]
-		self.whereareyou = ""
+		self.whereareyou = "Town"
 		self.shrinexp = 0
 		self.shrinegp = 0
 				
@@ -40,6 +40,10 @@ class PQ_RPG(object):
 		self.quest = {}
 		self.character.queststatus = "inactive"
 		self.store = ['Dagger']
+        
+    def destination(self,go):
+        """Set the destination of the character."""
+        self.whereareyou = go
 
 	def check_backtrack(self):
         """Determine if the character successfully backtracks to the start of the level."""
@@ -72,7 +76,7 @@ class PQ_RPG(object):
 	
 	def questhall(self):
         """The character enters the Questhall! It's super effective!"""
-		if self.queststatus == "active":
+		if self.character.queststatus == "active":
             msg = "As you enter the Questhall, Mayor Percival looks at you expectantly. 'Did you collect the item and defeat the monster? "
 			msg += "No? Well, then, get back out there! I suggest you try Dungeon level "+str(self.questlevel)+"."
             print msg, '\n'
@@ -102,10 +106,6 @@ class PQ_RPG(object):
             msg3 += "(adjusting for inflation)? Yes? Wonderful! Now get out.'"
             print msg1, '\n', msg2, '\n', msg3, '\n'
         self.character.queststatus = "active"
-			
-	def destination(self,location):
-        """Set location variable to a given location. May be obsolete..."""
-		self.whereareyou = location
 		
 	def godownstairs(self):
         """Head to the next lower dungeon level."""
@@ -119,9 +119,11 @@ class PQ_RPG(object):
 	def explore(self):
         """Explore the dungeon!"""
 		room = random.choice([random.randint(1,20) for i in range(0,6)])
+        self.whereareyou = "dungeon"
 		if room <= 2:
 			print "You find a flight of stairs, leading down! Go down, or Stay?", '\n'
-            choice = choose_from_list("Stairs> ",["down","go down","stay"])
+            choice = choose_from_list("Stairs> ",["down","go down","stay"],rand=False,
+                character=self.character,allowed=['sheet','help','equip'])
             if choice != "stay":
                 self.godownstairs()
             else:
@@ -318,6 +320,6 @@ class PQ_RPG(object):
 			return
 
 	def save(self):
-		d = shelve.open(os.path.expanduser('rpgsaves.db'))
+		d = shelve.open(os.path.expanduser('data/pq_saves.db'))
 		d[self.player] = self
 		d.close()

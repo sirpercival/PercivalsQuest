@@ -82,6 +82,8 @@ class PQ_Puzzle(object):
 			if self.char.currenthp <= 0:
 				msg += "..."
                 self.char.dead = True
+                print 'Sorry, '+self.character.player+', you have died. You can load from ' \
+                'your last save, quit, or make a new character.', '\n'
 			else:
 				msg += ", and have "+str(char.currenthp)+" hit points remaining."
 			print msg, '\n'
