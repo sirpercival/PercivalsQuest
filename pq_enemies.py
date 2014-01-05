@@ -2,38 +2,9 @@
 #  pq_enemies.py
 #  part of Percival's Quest RPG
 
-import random
+import random, json
 from pq_equipment import pq_treasuregen
 from pq_namegen import dragon_namegen, simple_namegen, monster_gen, artygen
-
-pq_monsters = { #more will be added at some point...
-    1: {'goblin':{'stat':(0,0,0,0,0,0), 'skill':'Flee'},
-        'troglodyte':{'stat':(1,0,1,1,0,0), 'skill':'Poison'},
-        'skeleton':{'stat':(1,1,0,0,1,0), 'skill':'Fear'}},
-    2: {'bugbear':{'stat':(2,1,0,1,0,0), 'skill':'Rage'},
-        'imp':{'stat':(0,0,2,0,1,1), 'skill':'Charm'},
-        'worg':{'stat':(1,1,1,1,0,0), 'skill':'Trip'}},
-    3: {'cockatrice':{'stat':(1,2,0,1,1,0), 'skill':'Petrify'},
-        'ogre':{'stat':(3,1,0,1,0,0), 'skill':'Smite'},
-        'wight':{'stat':(1,1,1,0,1,2), 'skill':'Fear'}},
-    4: {'ettin':{'stat':(3,1,0,2,0,0), 'skill':'Doublestrike'},
-        'manticore':{'stat':(2,2,0,1,0,1), 'skill':'Missile'},
-        'wyvern':{'stat':(1,1,2,1,0,1), 'skill':'Poison'}},
-    5: {'succubus':{'stat':(1,1,2,1,0,1,2), 'skill':'Charm'},
-        'gorgon':{'stat':(2,2,0,2,0,2), 'skill':'Petrify'},
-        'ogre mage':{'stat':(3,0,0,1,1,3), 'skill':'Missile'}},
-    6: {'frost giant':{'stat':(4,2,0,2,2,0), 'skill':'Smite'},
-        'rakshasa':{'stat':(2,2,1,1,1,3), 'skill':'Entangle'},
-        'hydra':{'stat':(5,2,0,3,0,0), 'skill':'Doublestrike'}},
-    7: {'kraken':{'stat':(5,3,0,4,0,0), 'skill':'Trip'},
-        'stone golem':{'stat':(3,4,0,3,2,0), 'skill':'Evade'},
-        'purple worm':{'stat':(5,2,0,3,0,2), 'skill':'Poison'}},
-    8: {'astral deva':{'stat':(4,2,1,2,2,3), 'skill':'Fear'},
-        'storm giant':{'stat':(5,2,1,2,2,3), 'skill':'Smite'},
-        'nightshade':{'stat':(3,4,1,3,0,3), 'skill':'Backstab'}},
-    9: {'marilith':{'stat':(4,3,2,3,2,2), 'skill':'Doublestrike'},
-        'pit fiend':{'stat':(5,3,1,3,3,2), 'skill':'Poison'},
-        'tarrasque spawn':{'stat':(6,5,0,5,0,0), 'skill':'Smite'}}}
         
 pq_dragonskill = {'Bronze':'Evade','Gold':'Smite','Blue':'Backstab',
     'Silver':'Cure','Brass':'Charm','Green':'Entangle','Red':'Rage',
@@ -64,6 +35,8 @@ class PQ_Enemy(object):
         if lvl >= 10: #if we're at level 10, face Dragons!
             self.dragongen(lvl)
         else:
+            with open('data/pq_bestiary.json') as f:
+                pq_monsters = json.load(f)
             self.level = lvl
             self.name = random.choice(pq_monsters[lvl].keys())
             for i in range(0,6):
