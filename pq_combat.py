@@ -18,8 +18,10 @@ class PQ_Combat(object):
 			self.enemy = enemy
 		self.turn = -1
 		self.char = char
-		char_init = 1 + char.init if char.stats[2] < 2 else random.choice([random.randint(1,char.stats[2])+char.init for j in range(0,6)])
-		enemy_init = 1 if self.enemy.stats[2] < 2 else random.choice([random.randint(1,self.enemy.stats[2]) for j in range(0,6)])
+		char_init = 1 + char.init if char.stats[2] < 2 else random.choice([random.randint(1,
+            char.stats[2])+char.init for j in range(0,6)])
+		enemy_init = 1 if self.enemy.stats[2] < 2 else random.choice([random.randint(1,
+            self.enemy.stats[2]) for j in range(0,6)])
 		self.turnorder = ['monster','player']
 		if char_init > enemy_init:
 			self.turnorder = ['player','monster']
@@ -37,7 +39,8 @@ class PQ_Combat(object):
         """Handle if somebody takes damage."""
 		target.ouch(dmg)
 		if target == self.character:
-			print "Ouch! You're bleeding, maybe a lot. You take "+str(dmg)+" damage, and have "+str(target.currenthp)+" hit points remaining.", '\n'
+			print "Ouch! You're bleeding, maybe a lot. You take "+str(dmg)+" damage, and have "+ \
+                str(target.currenthp)+" hit points remaining.", '\n'
 		else:
 			print "A hit! A very palpable hit! You deal "+str(dmg)+" damage.", '\n'
 		if target.currenthp <= 0:
@@ -48,7 +51,8 @@ class PQ_Combat(object):
     def death(self, target):
         """Handle if somebody dies"""
 		if target == self.character:
-			print 'Sorry, '+self.character.player+', you have died. You can load from your last save, quit, or make a new character.', '\n'
+			print 'Sorry, '+self.character.player+', you have died. You can load from ' \
+                'your last save, quit, or make a new character.', '\n'
 			self.temp = {}
 			self.tempturns = {}
 			self.char.dead = True
@@ -212,11 +216,8 @@ class PQ_Combat(object):
     def pc_turn(self):
         """The player takes his/her turn. Joy."""
         print "Attack, "+", ".join(self.char.skills)+", Flee, or Equip", '\n'
-        action = choose_from_list("Action> ",["Attack",self.char.skills,"Help","Flee","Sheet","Equip"],False)
-        while action == "Sheet" or action == "Help":
-            if action == "Sheet": self.char.tellchar()
-            if action == "Help": pq_help()
-            action = choose_from_list("Action> ",["Attack",self.char.skills,"Flee","Sheet","Equip"],False)
+        action = choose_from_list("Action> ",["Attack",self.char.skills,"Flee","Equip"],
+            rand=False,character=self,allowed=['sheet','help'])
         if action == "Attack":
             self.attack_enemy(self.char,self.enemy)
         elif action in self.char.skills:
@@ -237,7 +238,8 @@ class PQ_Combat(object):
             skills_ok = []
             skills_ok.append(self.enemy.skill == 'Petrify' and self.enemy.skillcounter < -3
             skills_ok.append(self.enemy.skill == 'Flee' and self.turn >= 2)
-            skills_ok.append(self.enemy.skill == 'Poison' and self.turn >= 2 and self.char.currenthp < self.char.hp)
+            skills_ok.append(self.enemy.skill == 'Poison' and self.turn >= 2 and \
+                self.char.currenthp < self.char.hp)
             if self.enemy.skillcounter < 0:
                 skills_ok.append(self.enemy.skill in avail_skills)
             if sum(skills_ok):

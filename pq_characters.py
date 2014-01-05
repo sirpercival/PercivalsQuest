@@ -68,23 +68,14 @@ class PQ_Character(object):
         self.player = player
         self.name = ng(5,12,2).replace('\n',' ')
         print "Available races: "+", ".join(pq_races.keys())
-        race = choose_from_list("Race> ",[pq_races.keys(),"Sheet"],True)
-        while race == "Sheet":
-            self.tellchar()
-            race = choose_from_list("Race> ",[pq_races.keys(),"Sheet"],True)
+        race = choose_from_list("Race> ",pq_races.keys(),rand=True,character=self,allowed=['sheet','help'])
         print "Available classes: "+", ".join(pq_classes.keys())
-		clas = choose_from_list("Class> ",[pq_classes.keys(),"Sheet"],True)
-        while clas == "Sheet":
-            self.tellchar()
-            clas = choose_from_list("Class> ",[pq_classes.keys(),"Sheet"],True)
+		clas = choose_from_list("Class> ",pq_classes.keys(),rand=True,character=self,allowed=['sheet','help'])
         nfeat = 2 if race.lower() == "human" else 1
         print "Available feats: "+", ".join(pq_feats.keys())
         feats = []
         for i in range(nfeat):
-            feat = choose_from_list("Feat> ",[pq_feats.keys(),"Sheet"],True)
-            while feat == "Sheet":
-                self.tellchar()
-                feat = choose_from_list("Feat> ",[pq_feats.keys(),"Sheet"],True)
+            feat = choose_from_list("Feat> ",pq_feats.keys(),rand=True,character=self,allowed=['sheet','help'])
             feats.append(feat)
 		self.race = race
 		self.clas = clas
@@ -155,10 +146,7 @@ class PQ_Character(object):
 		self.level += 1
         print "You have leveled up! Please choose a feat; if you would like one randomly chosen for you, enter Random.", '\n'
         print "Available feats: "+", ".join(pq_feats.keys())
-        feat_choice = choose_from_list("Feat> ",[pq_feats.keys(),"Sheet","Equip"], True)
-        while feat_choice == "Sheet":
-            self.tellchar()
-            feat_choice = choose_from_list("Feat> ",[pq_feats.keys(),"Sheet"], True)
+        feat_choice = choose_from_list("Feat> ",pq_feats.keys(),rand=True,character=self,allowed=['sheet','help','equip'])
 		if feat_choice.lower() in 'improvedinitiative':
 			self.init += 2
 		else:
@@ -212,10 +200,7 @@ class PQ_Character(object):
             print "You have nothing to equip!", '\n'
             return
         print "Lootbag: "+", ".join(collapse_stringlist(self.loot['items'],sortit=True,addcounts=True)), '\n'
-        equipment = choose_from_list("Equip> ",[self.char.loot['items'],"Sheet"])
-        while equipment == "Sheet":
-            self.tellchar()
-            equipment = choose_from_list("Equip> ",[self.char.loot['items'],"Sheet"])
+        equipment = choose_from_list("Equip> ",self.char.loot['items'],rand=False,character=self,allowed=['sheet','help'])
         type = pq_item_type(equipment)
 		oldequip = ''
         if type[0] == "ring":

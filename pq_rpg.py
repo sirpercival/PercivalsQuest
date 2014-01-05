@@ -59,9 +59,8 @@ class PQ_RPG(object):
         """Add an item to the shop. Currently, this algorithm makes the shop suck."""
 		shop_items = pq_treasuregen(self.questlevel)
 		for i in shop_items.keys():
-			if shop_items[i]:
-				if i != 'gp' and shop_items[i] not in self.store:
-					self.store.append(shop_items[i])
+			if shop_items[i] and i != 'gp' and shop_items[i] not in self.store:
+                self.store.append(shop_items[i])
 		
 	def telltown(self,start = False):
         """Describe the town square."""
@@ -202,6 +201,9 @@ class PQ_RPG(object):
 		else:
 			msg1 += " ".join(inventory) + "."
 		print msg1, '\n'
+        self.transactions()
+    
+    def transactions(self)
 		msg2 = "Your current loot bag contains "+str(self.character.loot['gp'])+" gp, and: "
 		lootbag = self.display_itemlist(self.character.loot['items'],True)
         lootbag_basic = collapse_stringlist(self.character.loot['items'],sortit=True,addcounts=False)
@@ -216,12 +218,9 @@ class PQ_RPG(object):
         sellist = [" ".join("sell",str(i),str(j)) for i in range(1,len(lootbag)+1) 
             for j in range(1,self.character.loot['items'].count(lootbag_basic[i-1]))] + 
             ["sell "+str(i) for i in range(1,len(lootbag)+1)]
-        choice = choose_from_list("Shop> ",[buylist,sellist,"sheet","equip","leave"])
-		while choice != "leave":
-            while choice == "sheet" or choice == "equip":
-                if choice == "sheet": self.character.tellchar()
-                if choice == "equip": self.character.equip()
-                choice = choose_from_list("Shop> ",[buylist,selllist,"sheet","equip","leave"])
+        choice = choose_from_list("Shop> ",[buylist,sellist,"leave"],rand=False,
+            character=self.character,allowed=['sheet','equip','help'])
+		if choice != "leave":
             choice = choice.split()
             item = choice[1]
             count = 1 if len(choice) > 2 else choice[2]
@@ -231,6 +230,7 @@ class PQ_RPG(object):
                     self.store.remove(item)
             elif choice[0] == "sell":
                 self.character.sell_loot(item,count)
+            self.transactions()
         print "You leave the shop and head back into the town square.",'\n'
 		
 	def visit_shrine(self):
@@ -239,12 +239,8 @@ class PQ_RPG(object):
 		msg = "The Shrine is mostly deserted at this time of day. Two of the altars catch your eye: one (choice 1) to "+self.gods[0]+", which offers Enlightenment on a sliding tithe scale; "
 		msg += "and one (choice 2) to "+self.gods[1]+", which promises Materialism for a single lump sum of 30,000gp."
         print msg, '\n', "Choice# Offering, or Leave"
-		choice = raw_input("Shrine> ").lower()
+		choice = get_user_input("Shrine> ",character=self.character,allow_sheet=True,allow_equip=True,allow_help=True).lower()
         while choice != "leave":
-            while choice == "sheet" or choice == "equip":
-                if choice == "sheet": self.character.tellchar()
-                if choice == "equip": self.character.equip()
-                choice = raw_input("Shrine> ").lower()
             choice = choice.split()
             if len(choice) < 2 or (choice[0] != "1" and choice[0] != "2"):
                 print "You need to pick both an altar number (1 or 2) and an offering amount."
@@ -257,7 +253,7 @@ class PQ_RPG(object):
                 choice = raw_input("Shrine> ").lower()
                 continue
             self.offering(choice[0],offering)
-            choice = raw_input("Shrine> ").lower()
+            choice = get_user_input("Shrine> ",character=self.character,allow_sheet=True,allow_equip=True,allow_help=True).lower()
         print "You leave the shrine and head back into the town square.",'\n'
 		
 	def offering(self,choice,amount):

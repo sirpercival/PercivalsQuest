@@ -3,7 +3,7 @@
 #  part of Percival's Quest RPG
 
 from pq_namegen import riddlegen, numgen
-from pq_utilities import atk_roll
+from pq_utilities import *
 from pq_equipment import *
 import random
 
@@ -47,10 +47,7 @@ class PQ_Puzzle(object):
 		msg2 += " I offer you choices three: you may play a game, for Gold; solve a riddle, for Riches; or undergo a Trial of Being, for Knowledge. Choose your prize, and choose well.'"
 		msg3 = "(Your choices are Gold, Riches, Knowledge, or Skip.)"
 		print msg1, '\n', msg2, '\n', msg3, '\n'
-        choice = choose_from_list("Choice> ",["gold","riches","knowledge","skip","sheet"])
-		while choice == "Sheet":
-            self.char.tellchar()
-            choice = choose_from_list("Choice> ",["gold","riches","knowledge","skip","sheet"])
+        choice = choose_from_list("Choice> ",["gold","riches","knowledge","skip"],character=self.char,allowed=['sheet','help','equip'])
 		self.choice = choice
 		if self.choice == "gold":
 			msg = "The "+self.thing+" nods approvingly. 'You have chosen the game; here are the rules. I have selected a set of four digits, in some order. "
@@ -145,10 +142,7 @@ class PQ_Puzzle(object):
 	def check_riddleguess(self):
         """Handle guesses of the riddle answer."""
         while self.riddleguess > 0:
-            guess = raw_input("Guess> ")
-            while guess.lower() == "sheet":
-                self.char.tellchar()
-                guess = raw_input("Guess> ")
+            guess = get_user_input("Guess> ", character=self.char, allow_sheet=True, allow_equip=True, allow_help=True)
             self.riddleguess -= 1
             #check for a valid guess
             badguess = 0
@@ -181,10 +175,7 @@ class PQ_Puzzle(object):
 	def check_numguess(self, guess):
         """A numeric Mastermind game! Give feedback on the guesses."""
         while self.numguess > 0:
-            guess = raw_input("Guess> ")
-            while guess.lower() == "sheet":
-                self.char.tellchar()
-                guess = raw_input("Guess> ")
+            guess = get_user_input("Guess> ", character=self.char, allow_sheet=True, allow_equip=True, allow_help=True)
             self.numguess -= 1
             #check for a valid guess
             badguess = False
