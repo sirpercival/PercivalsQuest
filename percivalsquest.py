@@ -74,7 +74,7 @@ def dungeon(rpg):
         return
     do = ""
     while do != "Leave":
-        actions = ["Explore","Backtrack","Leave"]
+        actions = ["Explore","Leave"] if rpg.whereareyou == "start" else ["Explore","Backtrack"]
         print "You're in the dank dark dungeon. What do you want to do?", \
             '\n', "Options: "+", ".join(actions)
         do = choose_from_list("Dungeon> ",actions,character=rpg.character,

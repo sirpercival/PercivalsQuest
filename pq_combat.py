@@ -217,9 +217,15 @@ class PQ_Combat(object):
     
     def pc_turn(self):
         """The player takes his/her turn. Joy."""
-        print "Attack, "+", ".join(self.char.skill)+", Flee, or Equip"
-        action = choose_from_list("Action> ",self.char.skill+["Attack","Flee","Equip"],
-            rand=False,character=self.char,allowed=['sheet','help'])
+        if self.char.currentsp > 0:
+            msg = "Attack, "+", ".join(self.char.skill)+", Flee, or Equip?"
+            available = self.char.skill+["Attack","Flee","Equip"]
+        else:
+            msg = "You are out of skill points! Attack, Flee, or Equip?"
+            available = ["Attack","Flee","Equip"]
+        print msg
+        action = choose_from_list("Action> ", available, rand=False,
+            character=self.char,allowed=['sheet','help'])
         if action == "Attack":
             self.attack_enemy(self.char,self.enemy)
         elif action in self.char.skill:
