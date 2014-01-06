@@ -1,4 +1,8 @@
 PercivalsQuest
 ================
 
-A python dungeoncrawler RPG
+A python dungeoncrawler RPG!
+
+To start the game, simply navigate to the proper directory and:
+
+command_line$ python percivalsquest.py
