@@ -135,7 +135,7 @@ def deadchar(rpg):
         deadchar(rpg)
         return
     if dothis == "Load":
-        save_db = shelve.open(os.path.expanduser('data/pq_saves'))
+        save_db = shelve.open(os.path.expanduser('~/pq_saves'))
         rpg = save_db[rpg.player_name]
         save_db.close()
         print "Game successfully loaded!", "You begin in the town square."
@@ -172,7 +172,7 @@ def main():
         color.END)
     msg = "Welcome, "+player_name+"!"
     rpg_instance = pqr.PQ_RPG(player_name)
-    save_db = shelve.open(os.path.expanduser('data/pq_saves'))
+    save_db = shelve.open(os.path.expanduser('~/pq_saves'))
     newgame = False
     if player_name in save_db:
         msg += " You currently have a game saved. Would you like to load it?"
