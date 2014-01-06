@@ -232,7 +232,6 @@ class PQ_Combat(object):
     def monster_turn(self):
         """YAY THE ENEMY GOES... this handles the VERY SIMPLISTIC monster AI."""
         self.enemy.skillcounter -= 1
-        print self.enemy.skillcounter, self.enemy.currentsp
         if self.enemy.currentsp <= 0 or float(self.enemy.currenthp)/float(self.enemy.hp) < 0.1:
             print "Running Away"
             self.runaway(user) #try to escape if it gets too hairy
@@ -250,8 +249,8 @@ class PQ_Combat(object):
             skills_ok.append(self.enemy.skill in avail_skills)
         if sum(skills_ok) and skillcheck1:
             print "The enemy uses "+self.enemy.skill+"!"
+            self.enemy.reset_skillcounter()
             self.use_skill(self.enemy.skill,self.enemy,self.char)
-            self.enemy.skillcounter = 1
         else:
             print "It tries to cause you bodily harm!"
             self.attack_enemy(self.enemy,self.char)

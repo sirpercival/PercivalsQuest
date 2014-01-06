@@ -75,6 +75,9 @@ class PQ_Enemy(object):
         """Deal damage to self. WHY WOULD YOU DO THIS IT'S INHUMANE"""
         self.currenthp -= damage
     
+    def reset_skillcounter(self):
+        self.skillcounter = 1
+    
     def cure(self, damage):
         """Cure damage to self. Much nicer."""
         self.currenthp = self.hp if self.currenthp + damage > self.hp else self.currenthp + damage
