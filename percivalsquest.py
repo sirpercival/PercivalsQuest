@@ -22,6 +22,9 @@ o======o
 from pq_rpg import *
 from pq_utilities import *
 import shelve, os, textwrap
+from colorama import init
+
+init()
 
 def town(rpg):
     """Maintain interactions with the town of North Granby."""

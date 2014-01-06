@@ -14,3 +14,6 @@ TO DO:
 ~Add passive skills
 ~Add potions
 ~Add traps
+
+UPDATE:
+I've added colorama to handle output of bold and colored text, even on Windows machines. I'm also including compiled versions of the modules.
