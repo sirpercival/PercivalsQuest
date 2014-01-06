@@ -6,3 +6,11 @@ A python dungeoncrawler RPG!
 To start the game, simply navigate to the proper directory and:
 
 command_line$ python percivalsquest.py
+
+
+TO DO:
+~Run pylint to clean up the code.
+~Add to bestiary
+~Add passive skills
+~Add potions
+~Add traps
