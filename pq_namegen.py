@@ -34,7 +34,7 @@ def sandgen(n=1):
        'digital','cucumber','tofu','-if slightly burnt-','recursive','banana','ice-cream',
        'ham&jam','tuna','double cheese','olive','..erm.. just','self-made','generic','sand',
        'witch','two-hander'),n) for i in range(6)])
-    sandwich = [such[i]+' '+topping[i] for i in range(n)]
+    sandwich = [such[i]+' '+topping[i]+' sandwich' for i in range(n)]
     if n == 1:
         return sandwich[0]
     return sandwich

@@ -117,7 +117,7 @@ class PQ_Puzzle(object):
             print msg, '\n'
             self.char.defeat_enemy(0,{typ[0]:self.riches})
         if self.choice == "knowledge":
-            msg = str(self.knowledge)+" experience!"
+            msg += str(self.knowledge)+" experience!"
             print msg, '\n'
             self.char.defeat_enemy(self.knowledge,{})
             if self.char.exp >= 10*self.char.level:
@@ -207,7 +207,7 @@ class PQ_Puzzle(object):
             #first pass: check for correct positions
             progress = 0
             for i in range(4):
-                if copy_guess[i] == copy_ans[i]:
+                if copy_guess[i] == copy_answer[i]:
                     correct.append('rectus')
                     copy_answer[i] = '*'
                     copy_guess[i] = '*'
@@ -234,19 +234,18 @@ class PQ_Puzzle(object):
             for i in ['rectus','proxime','malum']:
                 num = correct.count(i)
                 if num > 0:
-                    print num
                     hint.append(nums[num]+' '+i)
             hint = ', '.join(hint)+'.'
             progress = (progress+1)/2
-            progmsg = ("The "+self.thing+" sighs. 'You are nearly as far from correct as it is possible to be. Perhaps this hint will help:",
-                "The "+self.thing+" nods slowly. 'You have some small skill at this sort of thing, it would seem. A hint to aid your progress:",
-                "The "+self.thing+" quirks an eyebrow. 'Perhaps you do not even need this hint, but I will provide it anyway:",
-                "The "+self.thing+" smiles, showing a little too many teeth. 'I am impressed -- you are nearly there. Another hint:")
+            progmsg = ("The "+self.thing+" sighs. "+color.BOLD+"'You are nearly as far from correct as it is possible to be. Perhaps this hint will help:",
+                "The "+self.thing+" nods slowly. "+color.BOLD+"'You have some small skill at this sort of thing, it would seem. A hint to aid your progress:",
+                "The "+self.thing+" quirks an eyebrow. "+color.BOLD+"'Perhaps you do not even need this hint, but I will provide it anyway:",
+                "The "+self.thing+" smiles, showing a little too many teeth. "+color.BOLD+"'I am impressed -- you are nearly there. Another hint:")
             if self.numguess > 1:
-                nummsg = "You have "+str(self.numguess)+" guesses remaining. Use them wisely."
+                nummsg = "You have "+str(self.numguess)+" guesses remaining. Use them wisely.'"+color.END
             else:
-                nummsg = "You have one guess remaining. Use it wisely."
-            print " ".join([progmsg[progress],hint,nummsg]), '\n'
+                nummsg = "You have one guess remaining. Use it wisely.'"+color.END
+            print textwrap.fill(" ".join([progmsg[progress],hint,nummsg])), '\n'
         self.failure()
         return
         

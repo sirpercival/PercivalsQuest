@@ -98,7 +98,6 @@ class PQ_Combat(object):
             targstring = "You are " if hasattr(user,"player") else "The monster is "
             print targstring+"running away!"
             self.runaway(user, 1.)
-            self.whereareyou = "dungeon"
             self.done = True
             return
         if skill == 'Evade': #buff self Defense
@@ -113,7 +112,10 @@ class PQ_Combat(object):
         #then check for SoD
         if skill == 'Petrify':
             hit = pq_petrify(user, target)
-            if hit: self.death(target)
+            if hit: 
+                targstring = "The monster is " if hasattr(user,"player") else "You are "
+                print targstring+"petrified!"
+                self.death(target)
             return
         
         #then everything else:
@@ -153,7 +155,7 @@ class PQ_Combat(object):
             damage = pq_poison(user, target)
             hit = damage > 0
             
-        if hit:
+        if hit and damage > 0:
             if self.be_hit(target, damage):
                return 
         else:
@@ -165,9 +167,7 @@ class PQ_Combat(object):
         """Handle scenarious where (by some miniscule chance) the player wins the combat."""
         self.char.defeat_enemy(self.enemy.level, self.enemy.treasure)
         exp = self.enemy.level
-        msg = 'You receive '+str(exp)+' experience.'
-        if self.char.exp >= self.char.level * 10:
-            self.char.levelup()
+        print 'You receive '+str(exp)+' experience.'
         treasure = self.enemy.treasure
         msg = "In the monster's pockets, you find: "
         loot = []
@@ -187,6 +187,8 @@ class PQ_Combat(object):
         else:
             loot = ', '.join(loot) + '.'
         print msg + loot
+        if self.char.exp >= self.char.level * 10:
+            self.char.levelup()
         self.done = True
         
     def runaway(self, who, chance = 0.5):
@@ -233,8 +235,9 @@ class PQ_Combat(object):
         """YAY THE ENEMY GOES... this handles the VERY SIMPLISTIC monster AI."""
         self.enemy.skillcounter -= 1
         if self.enemy.currentsp <= 0 or float(self.enemy.currenthp)/float(self.enemy.hp) < 0.1:
-            print "Running Away"
-            self.runaway(user) #try to escape if it gets too hairy
+            if not self.runaway(self.enemy): #try to escape if it gets too hairy
+                self.advance_turn()
+            return
         skillcheck1 = self.enemy.currentsp > 0
         skills_ok = []
         skills_ok.append(self.enemy.skill == 'Petrify' and self.enemy.skillcounter < -3)

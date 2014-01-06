@@ -214,11 +214,11 @@ class PQ_RPG(object):
         else:
             msg2 += " ".join(lootbag) + "."
         print msg2, '\n', "Buy Item# [Amount], Sell Item# [Amount], or Leave."
-        buylist = [" ".join("buy",str(i),str(j)) for i in range(1,len(inventory)+1) 
+        buylist = [" ".join(["buy",str(i),str(j)]) for i in range(1,len(inventory)+1) 
             for j in range(1,self.store.count(inventory_basic[i-1]))] + \
             ["buy "+str(i) for i in range(1,len(inventory)+1)]
-        sellist = [" ".join("sell",str(i),str(j)) for i in range(1,len(lootbag)+1) 
-            for j in range(1,self.character.loot['items'].count(lootbag_basic[i-1]))] + \
+        sellist = [" ".join(["sell",str(i),str(j)]) for i in range(1,len(lootbag)+1) 
+            for j in range(1,self.character.loot['items'].count(lootbag_basic[i-1])+1)] + \
             ["sell "+str(i) for i in range(1,len(lootbag)+1)]
         choice = choose_from_list("Shop> ",buylist+sellist+["leave"],rand=False,
             character=self.character,allowed=['sheet','help'])
@@ -234,6 +234,10 @@ class PQ_RPG(object):
             except:
                 worth = 0
             count = 1 if len(choice) < 3 else choice[2]
+            try:
+                count = int(count)
+            except:
+                count = 1
             if not worth:
                 print "I'm sorry, I don't know what that item is. Can you try again?"
             elif choice[0] == "buy":

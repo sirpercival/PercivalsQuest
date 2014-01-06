@@ -26,6 +26,10 @@ import shelve, os, textwrap
 def town(rpg):
     """Maintain interactions with the town of North Granby."""
     while True:
+        if rpg.character.dead:
+            print "You are dead!"
+            deadchar(rpg)
+            break
         print "Where would you like to go?",'\n', "Options: Home, Questhall, " \
             "Shop, Shrine, or Dungeon [Level#] (max "+str(rpg.maxdungeonlevel)+")"
         destinations = ["Dungeon", "Home", "Questhall", "Quest", "Shop", "Shrine"] + \
@@ -63,6 +67,8 @@ def town(rpg):
 
 def dungeon(rpg):
     """Maintain interaction with the dungeon"""
+    if rpg.character.dead:
+        return
     do = ""
     while do != "Leave":
         actions = ["Explore","Backtrack","Leave"]
@@ -111,7 +117,7 @@ def deadchar(rpg):
         return
     if do == "Load":
         d = shelve.open(os.path.expanduser('data/pq_saves.db'))
-        rpg = d[player_name]
+        rpg = d[rpg.player_name]
         d.close()
         print "Game successfully loaded!", "You begin in the town square."
         rpg.character.tellchar()

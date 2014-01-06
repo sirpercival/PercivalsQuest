@@ -152,7 +152,8 @@ class PQ_Character(object):
         print "Available feats: "+", ".join(pq_feats.keys())
         feat_choice = choose_from_list("Feat> ",pq_feats.keys(),rand=True,character=self,allowed=['sheet','help','equip'])
         if feat_choice.lower() in 'improvedinitiative':
-            self.init += 2
+            self.initiative += 2
+            self.feats.append('ImprovedInitiative')
         else:
             for i in pq_feats.keys():
                 if i.lower() == feat_choice.lower():
