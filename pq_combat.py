@@ -158,7 +158,7 @@ class PQ_Combat(object):
         if hit and damage > 0:
             if self.be_hit(target, damage):
                return 
-        else:
+        elif not hit:
             targstring = "you." if hasattr(target,"player") else "the enemy."
             print "The "+skill+" failed to affect "+targstring
         self.advance_turn()

@@ -5,7 +5,7 @@
 from pq_namegen import web_namegen
 from pq_utilities import *
 from pq_equipment import *
-import random
+import random, textwrap
 
 pq_classes = {
     'fighter': {'stat':(5,3,2,4,0,1), 'skill':'Trip'},
@@ -117,7 +117,8 @@ class PQ_Character(object):
         feats = ', '.join(sorted(feats))
         print '; '.join([' '.join(statstring),color.BOLD+'hp '+color.END+str(self.currenthp)+'/'+str(self.hp),
             color.BOLD+'sp '+color.END+str(self.currentsp)+'/'+str(self.sp),
-            color.BOLD+'exp '+color.END+str(self.exp)+'/'+str(self.level*10),feats])
+            color.BOLD+'exp '+color.END+str(self.exp)+'/'+str(self.level*10)])
+        print textwrap.fill(feats)
         if not self.gear['armor']['name']:
             armor = color.BOLD+'Armor:'+color.END+' None (0)'
         else:
@@ -142,7 +143,7 @@ class PQ_Character(object):
             lootbag = 'None'
         else:
             lootbag = ', '.join(lootbag)
-        print str(self.loot['gp'])+' gp; loot: '+lootbag, '\n'
+        print textwrap.fill(str(self.loot['gp'])+' gp; loot: '+lootbag), '\n'
         
     def levelup(self):
         """Increasing level, including the feat choice that you get every level."""
@@ -207,7 +208,7 @@ class PQ_Character(object):
         print "What would you like to equip?"
         lootbag = ['Ring of '+i if i in pq_magic['ring'].keys() else i for i in self.loot['items']]
         lootbag_basic = collapse_stringlist(lootbag,sortit=True,addcounts=False)
-        print "Lootbag: "+", ".join(collapse_stringlist(lootbag,sortit=True,addcounts=True))
+        print textwrap.fill("Lootbag: "+", ".join(collapse_stringlist(lootbag,sortit=True,addcounts=True)))
         equipment = choose_from_list("Equip> ",lootbag_basic,rand=False,character=self,allowed=['sheet','help'])
         equipment = equipment.replace('Ring of ','')
         type = pq_item_type(equipment)

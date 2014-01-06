@@ -205,7 +205,7 @@ class PQ_RPG(object):
             msg1 += "Nothing!"
         else:
             msg1 += " ".join(inventory) + "."
-        print msg1
+        print textwrap.fill(msg1)
         msg2 = "Your current loot bag contains "+str(self.character.loot['gp'])+" gp, and: "
         lootbag = self.display_itemlist(self.character.loot['items'],True)
         lootbag_basic = collapse_stringlist(self.character.loot['items'],sortit=True,addcounts=False)
@@ -213,7 +213,7 @@ class PQ_RPG(object):
             msg2 += "Nothing!"
         else:
             msg2 += " ".join(lootbag) + "."
-        print msg2, '\n', "Buy Item# [Amount], Sell Item# [Amount], or Leave."
+        print textwrap.fill(msg2), '\n', "Buy Item# [Amount], Sell Item# [Amount], or Leave."
         buylist = [" ".join(["buy",str(i),str(j)]) for i in range(1,len(inventory)+1) 
             for j in range(1,self.store.count(inventory_basic[i-1]))] + \
             ["buy "+str(i) for i in range(1,len(inventory)+1)]
