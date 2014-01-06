@@ -88,7 +88,7 @@ class PQ_Enemy(object):
             if self.temp.get(i,False):
                 sign = -1 if bonus < 0 else 1
                 bonus = sign * max([abs(self.temp[i]),abs(bonus)]) #overwrite with whichever bonus is higher, and reset turns
-            self.temp[i] = bon
+            self.temp[i] = bonus
             self.tempturns[i] = turns
         
 class PQ_Quest(PQ_Enemy):
