@@ -265,7 +265,7 @@ class PQ_Combat(object):
         for i in self.char.temp.keys():
             self.char.tempturns[i] -= 1
             if self.char.tempturns[i] <= 0:
-                del self.char.tempturns[i], char.temp[i]
+                del self.char.tempturns[i], self.char.temp[i]
         for i in self.char.conditions.keys():
             self.char.conditions[i] -= 1
             if self.char.conditions[i] <= 0:
