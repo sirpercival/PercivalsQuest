@@ -241,11 +241,14 @@ class PQ_RPG(object):
             if not worth:
                 print "I'm sorry, I don't know what that item is. Can you try again?"
             elif choice[0] == "buy":
-                pl = "" if count == 1 else "s"
-                print "You buy "+str(count)+" "+item+pl+"!"
-                for i in range(count):
-                    self.character.buy_loot(item,worth)
-                    self.store.remove(item)
+                if worth > self.character.loot['gp']:
+                    print "You don't have enough gold to buy that, cheapskate!"
+                else:
+                    pl = "" if count == 1 else "s"
+                    print "You buy "+str(count)+" "+item+pl+"!"
+                    for i in range(count):
+                        self.character.buy_loot(item,worth)
+                        self.store.remove(item)
             elif choice[0] == "sell":
                 pl = "" if count == 1 else "s"
                 print "You sell "+str(count)+" "+item+pl+"!"

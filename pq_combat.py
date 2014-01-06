@@ -103,7 +103,7 @@ class PQ_Combat(object):
         if skill == 'Evade': #buff self Defense
             targstring = "You feel " if hasattr(user,"player") else "The monster feels "
             print targstring+"more evasive!"
-            user.temp_bonus(["Defense"],user.skill[5],4)
+            user.temp_bonus(["Defense"],user.stats[5],4)
             self.advance_turn()
             return
         
