@@ -4,6 +4,7 @@
 
 from pq_utilities import atk_roll
 from pq_characters import pq_stats_short
+import random
 
 pq_reverse_stats = {0:"Attack", 1:"Defense", 2:"Reflexes",
     3:"Fortitude", 4:"Mind", 5:"Skill"}
@@ -12,7 +13,7 @@ def pq_smite(user, target):
     """Perform a Smite -- a single attack with a buff of 1dSkill"""
     temp_atk = user.atk
     temp_atk[1] += random.randint(1,user.stats[5])
-    hit = atk_roll(tmp_atk, target.dfn, user.temp.get("Attack",0), target.temp.get("Defense",0))
+    hit = atk_roll(temp_atk, target.dfn, user.temp.get("Attack",0), target.temp.get("Defense",0))
     return hit
 
 def pq_cure(user, target):
@@ -20,8 +21,8 @@ def pq_cure(user, target):
     cure = random.randint(1,user.stats[5]+user.temp.get("Skill",0)) + user.level
     user.cure(cure)
     hit = atk_roll(user.atk, target.dfn, user.temp.get("Attack",0), target.temp.get("Defense",0))
-    targstring = "You are " if user.hasattr("player") else "The monster is " 
-    print targstring+"cured for "+str(cure)+" hp! An attack follows.", '\n'
+    targstring = "You are " if hasattr(user,"player") else "The monster is " 
+    print targstring+"cured for "+str(cure)+" hp! An attack follows."
     return hit
 
 def pq_trip(user, target):
@@ -29,8 +30,8 @@ def pq_trip(user, target):
     hit = atk_roll(user.atk,target.atk,user.temp.get("Attack",0),target.temp.get("Attack",0))
     if hit > 0:
         hit = max([hit/2,1])
-        targstring = "The monster is " if user.hasattr("player") else "You are "
-        print targstring+"tripped!", '\n'
+        targstring = "The monster is " if hasattr(user,"player") else "You are "
+        print targstring+"tripped!"
         if "tripped" not in target.conditions:
             target.conditions["tripped"] = 2
         debuff = max([0,random.choice([random.randint(0,user.stats[5]) for i in range(0,6)]) + user.temp.get("Skill",0)])
@@ -40,7 +41,7 @@ def pq_trip(user, target):
 def pq_missile(user, target):
     """Perform a Missile -- a single attack, Skill vs Reflexes"""
     num_missile = user.level/3 + 1
-    targstring = "You send " if user.hasattr("player") else "The monster sends "
+    targstring = "You send " if hasattr(user,"player") else "The monster sends "
     print targstring + str(num_missile)+" missiles!"
     hit = 0
     for i in range(num_missile):
@@ -84,8 +85,8 @@ def pq_charm(user, target):
     hit1 = atk_roll([0,user.stats[5]],[0,target.stats[4]],user.temp.get("Skill",0),target.temp.get("Mind",0))
     hit2 = atk_roll([0,user.stats[5]],[0,target.stats[4]],user.temp.get("Skill",0),target.temp.get("Mind",0))
     if hit1 > 0 and hit2 > 0:
-        targstring = "The monster is " if user.hasattr("player") else "You are "
-        print targstring+"charmed!", '\n'
+        targstring = "The monster is " if hasattr(user,"player") else "You are "
+        print targstring+"charmed!"
         if "charmed" not in target.conditions:
             target.conditions["charmed"] = 4
         return True
@@ -95,8 +96,8 @@ def pq_entangle(user, target):
     """Perform an Entangle (Skill vs Reflexes) to debuff."""
     hit = atk_roll([0,user.stats[5]],[0,target.stats[2]],user.temp.get("Skill",0),target.temp.get("Reflex",0))
     if hit > 0:
-        targstring = "The monster is " if user.hasattr("player") else "You are "
-        print targstring+"entangled!", '\n'
+        targstring = "The monster is " if hasattr(user,"player") else "You are "
+        print targstring+"entangled!"
         if "entangled" not in target.conditions:
             target.conditions["entangled"] = 4
         target.temp_bonus(["Attack","Defense"],-hit,4)
@@ -108,8 +109,8 @@ def pq_fear(user, target):
     hit = atk_roll([0,user.stats[5]],[0,target.stats[4]],user.temp.get("Skill",0),target.temp.get("Mind",0))
     if hit > 0:
         hit = max([1,hit/2])
-        targstring = "The monster is " if user.hasattr("player") else "You are "
-        print targstring+"frightened!", '\n'
+        targstring = "The monster is " if hasattr(user,"player") else "You are "
+        print targstring+"frightened!"
         target.temp_bonus(["Attack","Defense"],-hit,4)
         return True
     return False
@@ -119,9 +120,9 @@ def pq_dominate(user, target):
     affect = atk_roll([0,user.stats[5]],[0,target.stats[4]],user.temp.get("Skill",0),target.temp.get("Mind",0))
     if affect > 0:
         hit = atk_roll(target.atk,target.dfn,target.temp.get("Attack",0)+affect,target.temp.get("Defense",0))
-        targstring = "The monster is " if user.hasattr("player") else "You are "
-        targstring2 = "s itself!" if user.hasattr("player") else " yourself!"
-        print targstring+"dominated, and attack"+targstring2, '\n'
+        targstring = "The monster is " if hasattr(user,"player") else "You are "
+        targstring2 = "s itself!" if hasattr(user,"player") else " yourself!"
+        print targstring+"dominated, and attack"+targstring2
         return hit
     return affect
 

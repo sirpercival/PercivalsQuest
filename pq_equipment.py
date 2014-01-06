@@ -56,8 +56,13 @@ def pq_item_type(item):
     if item in pq_magic['ring'].keys():
         return ['ring']
     itemsplit = item.split()
-    gear_list = [(k,'armor',j) for j in pq_gear['armor'].keys() for k in pq_gear['armor'][j].keys(),
-        (k,'weapon',j) for j in pq_gear['weapon'].keys() for k in pq_gear['weapon'][j].keys()]
+    gear_list = []
+    for j in pq_gear['armor'].keys():
+        for k in pq_gear['armor'][j].keys():
+            gear_list.append((k,'armor',j))
+    for j in pq_gear['weapon'].keys():
+        for k in pq_gear['weapon'][j].keys():
+            gear_list.append((k,'weapon',j))
     for i in itemsplit:
         for j in gear_list:
             if i.lower() == j[0].lower():
@@ -74,12 +79,11 @@ def pq_item_rating(type, item):
 def pq_item_worth(item):
     """Determine the value of the item at the General Store"""
     type = pq_item_type(item)
+    if not type:
+        return 0
     if type[0] == 'ring':
         return 3000
-    elif type:
-        return pq_value[pq_item_rating(type,item)]
-    else:
-        return 0
+    return pq_value[pq_item_rating(type,item)]
 
 def pq_treasuregen(level):
     """Generate random monster or chest treasure based on the level of the dungeon it's found on."""
@@ -89,7 +93,7 @@ def pq_treasuregen(level):
     if armor_chance <= level:
         type = random.choice(pq_gear['armor'].keys())
         max_rating = min([level/2,5])
-        rating = random.randint(1,max_rating)
+        rating = 0 if max_rating < 1 else random.randint(0,max_rating)
         magic_chance = random.randint(1,10) #roll for magic
         magic = ''
         if magic_chance <= level:
@@ -101,7 +105,7 @@ def pq_treasuregen(level):
     if weapon_chance <= level:
         type = random.choice(pq_gear['weapon'].keys())
         max_rating = min([level/2,5])
-        rating = random.randint(0,max_rating)
+        rating = 0 if max_rating < 1 else random.randint(0,max_rating)
         magic_chance = random.randint(1,10) #roll for magic
         magic = ''
         if magic_chance <= level:

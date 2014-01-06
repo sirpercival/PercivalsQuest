@@ -12,14 +12,14 @@ class PQ_Combat(object):
     def __init__(self, lvl, char, enemy):
         """Initialize a combat encounter instance, using either a supplied enemy or generating a new one."""
         if not enemy:
-            self.enemy = PQ_Enemy(lvl)
+            self.enemy = PQ_Enemy()
             self.enemy.gen(lvl)
         else:
             self.enemy = enemy
         self.turn = -1
         self.char = char
-        char_init = 1 + char.init if char.stats[2] < 2 else random.choice([random.randint(1,
-            char.stats[2])+char.init for j in range(0,6)])
+        char_init = 1 + char.initiative if char.stats[2] < 2 else random.choice([random.randint(1,
+            char.stats[2])+char.initiative for j in range(0,6)])
         enemy_init = 1 if self.enemy.stats[2] < 2 else random.choice([random.randint(1,
             self.enemy.stats[2]) for j in range(0,6)])
         self.turnorder = ['monster','player']
@@ -38,11 +38,11 @@ class PQ_Combat(object):
     def be_hit(self, target, dmg):
         """Handle if somebody takes damage."""
         target.ouch(dmg)
-        if target == self.character:
+        if target == self.char:
             print "Ouch! You're bleeding, maybe a lot. You take "+str(dmg)+" damage, and have "+ \
-                str(target.currenthp)+" hit points remaining.", '\n'
+                str(target.currenthp)+" hit points remaining."
         else:
-            print "A hit! A very palpable hit! You deal "+str(dmg)+" damage.", '\n'
+            print "A hit! A very palpable hit! You deal "+str(dmg)+" damage."
         if target.currenthp <= 0:
             self.death(target)
             return True
@@ -50,16 +50,16 @@ class PQ_Combat(object):
     
     def death(self, target):
         """Handle if somebody dies"""
-        if target == self.character:
-            print 'Sorry, '+self.character.player+', you have died. You can load from ' \
-                'your last save, quit, or make a new character.', '\n'
+        if target == self.char:
+            print 'Sorry, '+self.char.player+', you have died. You can load from ' \
+                'your last save, quit, or make a new character.'
             self.temp = {}
             self.tempturns = {}
             self.char.dead = True
             self.done = True
             return
-        if target == self.combat.enemy:
-            print 'You have defeated the '+self.enemy.name+'!', '\n'
+        if target == self.enemy:
+            print 'You have defeated the '+self.enemy.name+'!'
             self.win_combat()
             return
         
@@ -67,7 +67,7 @@ class PQ_Combat(object):
         """Just a simple attack, Attack vs Defense. Basic, lovely."""
         if "charmed" in user.conditions:
             targstring = "You are " if user == self.char else "The monster is "
-            print targstring+"charmed, and cannot attack!", '\n'
+            print targstring+"charmed, and cannot attack!"
             self.advance_turn()
             return
         hit = atk_roll(user.atk, target.dfn, user.temp.get("Attack",0), target.temp.get("Defense",0))
@@ -75,35 +75,35 @@ class PQ_Combat(object):
             if not self.be_hit(target, hit):
                 self.advance_turn()
         else:
-            print "The attack is unsuccessful.", '\n'
+            print "The attack is unsuccessful."
             self.advance_turn()
             
     def use_skill(self, skill, user, target):
         """Parse the different skill options."""
         if skill not in user.skill:
-            print "You don't have that skill...", '\n'
+            print "You don't have that skill..."
             return
         if user.currentsp == 0:
-            print "Not enough skill points remaining to use that skill...", '\n'
+            print "Not enough skill points remaining to use that skill..."
             return
         if "charmed" in user.conditions:
             targstring = "You are " if user == self.char else "The monster is "
-            print targstring+"charmed, and cannot use skills!", '\n'
+            print targstring+"charmed, and cannot use skills!"
             self.advance_turn()
             return
         user.currentsp -= 1
         
         #first check for flee or evade
         if skill == 'Flee': #escape from combat
-            targstring = "You are " if user.hasattr("player") else "The monster is "
-            print targstring+"running away!", '\n'
+            targstring = "You are " if hasattr(user,"player") else "The monster is "
+            print targstring+"running away!"
             self.runaway(user, 1.)
             self.whereareyou = "dungeon"
             self.done = True
             return
         if skill == 'Evade': #buff self Defense
-            targstring = "You feel " if user.hasattr("player") else "The monster feels "
-            print targstring+"more evasive!", '\n'
+            targstring = "You feel " if hasattr(user,"player") else "The monster feels "
+            print targstring+"more evasive!"
             user.temp_bonus(["Defense"],user.skill[5],4)
             self.advance_turn()
             return
@@ -157,8 +157,8 @@ class PQ_Combat(object):
             if self.be_hit(target, damage):
                return 
         else:
-            targstring = "you." if target.hasattr("player") else "the enemy."
-            print "The "+skill+" failed to affect "+targstring,'\n'
+            targstring = "you." if hasattr(target,"player") else "the enemy."
+            print "The "+skill+" failed to affect "+targstring
         self.advance_turn()
 
     def win_combat(self):
@@ -174,53 +174,53 @@ class PQ_Combat(object):
         for i in treasure.keys():
             if treasure[i]:
                 if i == 'gp':
-                    loot.append(str(tr[i])+" gp")
+                    loot.append(str(treasure[i])+" gp")
                 elif i == 'ring':
-                    loot.append("a Ring of "+tr[i])
+                    loot.append("a Ring of "+treasure[i])
                 elif i == 'quest':
-                    loot.append(tr[i])
+                    loot.append(treasure[i])
                     self.char.queststatus = "complete"
                 else:
-                    loot.append("a "+tr[i])
+                    loot.append("a "+treasure[i])
         if not loot:
             loot = "Nothing!"
         else:
             loot = ', '.join(loot) + '.'
-        print msg + loot, '\n'
+        print msg + loot
         self.done = True
         
     def runaway(self, who, chance = 0.5):
         if "entangled" in who.conditions:
             targstring = "You are " if user == self.char else "The monster is "
-            print targstring+"entangled, and cannot flee!", '\n'
+            print targstring+"entangled, and cannot flee!"
             self.advance_turn()
             return
         if "tripped" in who.conditions:
             targstring = "You are " if user == self.char else "The monster is "
-            print targstring+"tripped, and cannot flee!", '\n'
+            print targstring+"tripped, and cannot flee!"
             self.advance_turn()
             return
         if random.random() < chance:
             if who == self.char:
-                print "You successfully exercise your valor, vis a vis discretion.", '\n'
+                print "You successfully exercise your valor, vis a vis discretion."
             else:
-                print "Your enemy turns tail and books it back into the dungeon.", '\n'
+                print "Your enemy turns tail and books it back into the dungeon."
             return True
         else:
             if who == self.char:
-                print "You try to run, but the enemy boxes you in.", '\n'
+                print "You try to run, but the enemy boxes you in."
             else:
-                print "You prevent your enemy from skedaddling.", '\n'
+                print "You prevent your enemy from skedaddling."
             return False
     
     def pc_turn(self):
         """The player takes his/her turn. Joy."""
-        print "Attack, "+", ".join(self.char.skills)+", Flee, or Equip", '\n'
-        action = choose_from_list("Action> ",["Attack",self.char.skills,"Flee","Equip"],
-            rand=False,character=self,allowed=['sheet','help'])
+        print "Attack, "+", ".join(self.char.skill)+", Flee, or Equip"
+        action = choose_from_list("Action> ",self.char.skill+["Attack","Flee","Equip"],
+            rand=False,character=self.char,allowed=['sheet','help'])
         if action == "Attack":
             self.attack_enemy(self.char,self.enemy)
-        elif action in self.char.skills:
+        elif action in self.char.skill:
             self.use_skill(action,self.char,self.enemy)
         elif action == "Flee":
             if not self.runaway(self.char):
@@ -231,30 +231,35 @@ class PQ_Combat(object):
             
     def monster_turn(self):
         """YAY THE ENEMY GOES... this handles the VERY SIMPLISTIC monster AI."""
+        self.enemy.skillcounter -= 1
+        print self.enemy.skillcounter, self.enemy.currentsp
         if self.enemy.currentsp <= 0 or float(self.enemy.currenthp)/float(self.enemy.hp) < 0.1:
+            print "Running Away"
             self.runaway(user) #try to escape if it gets too hairy
-        elif self.enemy.currentsp > 0: #yay we can use skills!
-            avail_skills = pq_dragonskills.values().remove('Petrify').remove('Flee').remove('Poison')
-            skills_ok = []
-            skills_ok.append(self.enemy.skill == 'Petrify' and self.enemy.skillcounter < -3)
-            skills_ok.append(self.enemy.skill == 'Flee' and self.turn >= 2)
-            skills_ok.append(self.enemy.skill == 'Poison' and self.turn >= 2 and \
-                self.char.currenthp < self.char.hp)
-            if self.enemy.skillcounter < 0:
-                skills_ok.append(self.enemy.skill in avail_skills)
-            if sum(skills_ok):
-                print "The enemy uses "+self.enemy.skill+"!", '\n'
-                self.use_skill(self.enemy.skill,self.enemy,self.char)
-                self.enemy.skillcounter = 1
+        skillcheck1 = self.enemy.currentsp > 0
+        skills_ok = []
+        skills_ok.append(self.enemy.skill == 'Petrify' and self.enemy.skillcounter < -3)
+        skills_ok.append(self.enemy.skill == 'Flee' and self.turn >= 2)
+        skills_ok.append(self.enemy.skill == 'Poison' and self.turn >= 2 and \
+            self.char.currenthp < self.char.hp)
+        if self.enemy.skillcounter < 0:
+            avail_skills = pq_dragonskill.values()
+            avail_skills.remove('Petrify')
+            avail_skills.remove('Flee')
+            avail_skills.remove('Poison')
+            skills_ok.append(self.enemy.skill in avail_skills)
+        if sum(skills_ok) and skillcheck1:
+            print "The enemy uses "+self.enemy.skill+"!"
+            self.use_skill(self.enemy.skill,self.enemy,self.char)
+            self.enemy.skillcounter = 1
         else:
-            print "It tries to cause you bodily harm!", '\n'
-            self.attack_enemy(self.enemy,self.character)
+            print "It tries to cause you bodily harm!"
+            self.attack_enemy(self.enemy,self.char)
         
     def advance_turn(self):
         """Advance the turn, decrementing counters on temporary effects and adjudicating turn order."""
         self.turn += 1
         whos = self.turnorder[self.turn % 2]
-        self.enemy.skillcounter -= 1
         for i in self.char.temp.keys():
             self.char.tempturns[i] -= 1
             if self.char.tempturns[i] <= 0:

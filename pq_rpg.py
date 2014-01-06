@@ -7,7 +7,7 @@ This is the big one -- handles the actual RPG instance and management.
 Player input handling, however, will be in a different file.
 """
 
-import random
+import random, shelve, os, textwrap
 from pq_characters import *
 from pq_enemies import *
 from pq_combat import *
@@ -49,9 +49,9 @@ class PQ_RPG(object):
         """Determine if the character successfully backtracks to the start of the level."""
         differential = self.character.stats[4] - self.dungeonlevel
         if differential < 0: #Backtrack chance is 50% for Mind = dungeon level
-            cutoff = float(3 - chk)/float(6 - 6 * chk) #asymptotic to 1/6 for Mind < dungeon level
+            cutoff = float(3 - differential)/float(6 - 6 * differential) #asymptotic to 1/6 for Mind < dungeon level
         else:
-            cutoff = float(3 + 5 * chk)/float(6 + 6 * chk) #asymptotic to 5/6 for Mind > dungeon level
+            cutoff = float(3 + 5 * differential)/float(6 + 6 * differential) #asymptotic to 5/6 for Mind > dungeon level
         return random.random() < cutoff
 
     def init_quest(self, level):
@@ -72,39 +72,39 @@ class PQ_RPG(object):
         msg += "To the East is your humble abode and warm bed; to the North, the General Store where various and sundry goods may be purchased; "
         msg += "to the West, the Questhall where the mayor makes his office; "
         msg += "to the Northwest, the local Shrine to the Unknowable Gods; and to the South lie the gates of the city, leading out to the Dungeon."
-        print msg, '\n'
+        print textwrap.fill(msg)
     
     def questhall(self):
         """The character enters the Questhall! It's super effective!"""
         if self.character.queststatus == "active":
-            msg = "As you enter the Questhall, Mayor Percival looks at you expectantly. 'Did you collect the item and defeat the monster? "
-            msg += "No? Well, then, get back out there! I suggest you try Dungeon level "+str(self.questlevel)+"."
-            print msg, '\n'
+            msg = "As you enter the Questhall, Mayor Percival looks at you expectantly. "+color.BOLD+"'Did you collect the item and defeat the monster? "
+            msg += "No? Well, then, get back out there! I suggest you try Dungeon level "+str(self.questlevel)+".'"+color.END
+            print textwrap.fill(msg)
             return
         self.questlevel += 1
         self.init_quest(self.questlevel)
         if self.character.queststatus == "inactive":
-            msg1 = "In the Questhall, Mayor Percival frets behind his desk. '"+self.character.name+"! Just the person I was looking for. "
-            msg1 += "There's... something I need you to do. See, there are rumors of a horrible creature, called "+self.quest.name+", roaming the dungeon."
-            msg2 = "This monstrosity draws its power from "+self.quest.arty[0]+","+self.quest.arty[1].lower()+" I need you to go into the dungeon, "
+            msg1 = "In the Questhall, Mayor Percival frets behind his desk. "+color.BOLD+"'"+self.character.name+"! Just the person I was looking for. "
+            msg1 += "There's... something I need you to do. See, there are rumors of a horrible creature,\n called "+self.quest.name+", roaming the dungeon. "
+            msg2 = " This monstrosity draws its power from "+self.quest.artifact[0]+","+self.quest.artifact[1].lower()+" I need you to go into the dungeon, "
             msg2 += "kill that beast, and bring back the artifact so my advisors can destroy it. The townspeople will be very grateful, "
-            msg2 += "and you'll receive a substantial reward! Now, get out of here and let me finish my paperwork.'"
-            print msg1, '\n', self.quest.description, '\n', msg2, '\n'
+            msg2 += "and you'll receive a substantial reward! Now, get out of here and let me finish my paperwork.'"+color.END
+            print textwrap.fill(msg1+self.quest.description+msg2)
         elif self.character.queststatus == "complete":
-            print "Mayor Percival looks up excitedly. 'You have it! Well, thank my lucky stars. You're a True Hero, "+self.character.name+"!'", '\n'
+            print "Mayor Percival looks up excitedly. "+color.BOLD+"'You have it! Well, thank my lucky stars. You're a True Hero, "+self.character.name+"!'"+color.END
             exp = 5 * (self.questlevel-1)
             gp = int(random.random()*2+1) * exp
-            print "You gain "+str(exp)+" experience and "+str(gp)+" gp!", '\n'
+            print "You gain "+str(exp)+" experience and "+str(gp)+" gp!"
             self.character.complete_quest(exp,gp)
             limit = self.character.level*10
-            if self.character.exp + exp >= limit:
+            if self.character.exp >= limit:
                 self.character.levelup()
             self.addshopitem()
-            msg1 = "Percival clears his throat hesitantly. 'Since I have you here, there... have been rumors of another problem in the dungeon. "
-            msg2 = self.quest.name+" is its name. "+self.quest.desc
-            msg3 = "The source of its power is "+self.quest.arty[0]+", "+self.quest.arty[1]+" Will you take this quest, same terms as last time "
-            msg3 += "(adjusting for inflation)? Yes? Wonderful! Now get out.'"
-            print msg1, '\n', msg2, '\n', msg3, '\n'
+            msg1 = "Percival clears his throat hesitantly. "+color.BOLD+"'Since I have you here, there... have been rumors of another problem in the dungeon. "
+            msg2 = self.quest.name+" is its name. "+self.quest.description
+            msg3 = " The source of its power is "+self.quest.artifact[0]+", "+self.quest.artifact[1]+" Will you take this quest, same terms as last time "
+            msg3 += "(adjusting for inflation)? Yes? Wonderful! Now get out.'"+color.END
+            print textwrap.fill(msg1+msg2+msg3)
         self.character.queststatus = "active"
         
     def godownstairs(self):
@@ -113,7 +113,7 @@ class PQ_RPG(object):
         self.dungeonlevel += 1
         if self.dungeonlevel > self.maxdungeonlevel:
             self.maxdungeonlevel = self.dungeonlevel
-        print "You head down the stairs to level "+str(self.dungeonlevel), '\n'
+        print "You head down the stairs to level "+str(self.dungeonlevel)
         return
 
     def explore(self):
@@ -121,13 +121,13 @@ class PQ_RPG(object):
         room = random.choice([random.randint(1,20) for i in range(0,6)])
         self.whereareyou = "dungeon"
         if room <= 2:
-            print "You find a flight of stairs, leading down! Go down, or Stay?", '\n'
+            print "You find a flight of stairs, leading down! Go down, or Stay?"
             choice = choose_from_list("Stairs> ",["down","go down","stay"],rand=False,
                 character=self.character,allowed=['sheet','help','equip'])
             if choice != "stay":
                 self.godownstairs()
             else:
-                print "You decide to stick around on level "+str(self.dungeonlevel)+" a little while longer.", '\n'
+                print "You decide to stick around on level "+str(self.dungeonlevel)+" a little while longer."
             return
         elif room > 2 and room <= 5:
             msg = "You found a chest! "
@@ -146,12 +146,12 @@ class PQ_RPG(object):
                 msg += "Sadly, it was empty."
             else:
                 msg += "Inside, you find "+", ".join(loot) + "."
-            print msg, '\n'
+            print msg
             return
         elif room > 5 and room <= 8:
             msg = "The room echoes with a hollow emptiness, and you reflect on the vagaries of living life alone... "
             msg += "Then you eat"+sandgen()+", and get ready to kill more things."
-            print msg, '\n', "You regain "+str(self.dungeonlevel)+" hp and sp!", '\n'
+            print textwrap.fill(msg), "\nYou regain "+str(self.dungeonlevel)+" hp and sp!"
             self.character.sammich(self.dungeonlevel)
             return
         elif room > 8 and room <= 10:
@@ -160,7 +160,7 @@ class PQ_RPG(object):
             self.puzzle.puzzleinit()
         elif room > 10:
             msg = "You've stumbled on an enemy! It seems to be... "
-            questcheck = self.maxdgnlevel - self.questlevel #goes from .1 to .5 asymptotically as you adventure farther
+            questcheck = self.maxdungeonlevel - self.questlevel #goes from .1 to .5 asymptotically as you adventure farther
             cutoff = float(1 + questcheck)/float(10 + 2*questcheck)
             if self.dungeonlevel == self.questlevel and self.quest and self.character.queststatus == "active" and random.random() < cutoff:
                 self.combat = PQ_Combat(self.dungeonlevel, self.character, self.quest)
@@ -175,7 +175,7 @@ class PQ_RPG(object):
                 msg += ' You get the jump on it.'
             else:
                 msg += ' It gets the jump on you.'
-            print msg, '\n'
+            print msg
             self.whereareyou = "combat"
             self.combat.advance_turn()
             self.combat = None
@@ -194,7 +194,10 @@ class PQ_RPG(object):
         return items
 
     def visit_shop(self):
-        print "The shopkeep greets you cheerfully. 'Welcome, hero! What can I do for you?'", '\n'
+        print "The shopkeep greets you cheerfully. 'Welcome, hero! What can I do for you?'"
+        self.transactions()
+    
+    def transactions(self):
         msg1 = "His current inventory is: "
         inventory = self.display_itemlist(self.store)
         inventory_basic = collapse_stringlist(self.store,sortit=True,addcounts=False)
@@ -202,10 +205,7 @@ class PQ_RPG(object):
             msg1 += "Nothing!"
         else:
             msg1 += " ".join(inventory) + "."
-        print msg1, '\n'
-        self.transactions()
-    
-    def transactions(self):
+        print msg1
         msg2 = "Your current loot bag contains "+str(self.character.loot['gp'])+" gp, and: "
         lootbag = self.display_itemlist(self.character.loot['items'],True)
         lootbag_basic = collapse_stringlist(self.character.loot['items'],sortit=True,addcounts=False)
@@ -213,46 +213,59 @@ class PQ_RPG(object):
             msg2 += "Nothing!"
         else:
             msg2 += " ".join(lootbag) + "."
-        print msg2, '\n' "Buy Item# [Amount], Sell Item# [Amount], or Leave."
+        print msg2, '\n', "Buy Item# [Amount], Sell Item# [Amount], or Leave."
         buylist = [" ".join("buy",str(i),str(j)) for i in range(1,len(inventory)+1) 
             for j in range(1,self.store.count(inventory_basic[i-1]))] + \
             ["buy "+str(i) for i in range(1,len(inventory)+1)]
         sellist = [" ".join("sell",str(i),str(j)) for i in range(1,len(lootbag)+1) 
             for j in range(1,self.character.loot['items'].count(lootbag_basic[i-1]))] + \
             ["sell "+str(i) for i in range(1,len(lootbag)+1)]
-        choice = choose_from_list("Shop> ",[buylist,sellist,"leave"],rand=False,
-            character=self.character,allowed=['sheet','equip','help'])
-        if choice != "leave":
+        choice = choose_from_list("Shop> ",buylist+sellist+["leave"],rand=False,
+            character=self.character,allowed=['sheet','help'])
+        if choice == "leave":
+            print "You leave the shop and head back into the town square.",'\n'
+            return
+        else:
             choice = choice.split()
-            item = choice[1]
-            count = 1 if len(choice) > 2 else choice[2]
-            if choice[0] == "buy":
+            try:
+                item = int(choice[1])
+                item = inventory_basic[item-1] if choice[0] == "buy" else lootbag_basic[item-1]
+                worth = pq_item_worth(item)
+            except:
+                worth = 0
+            count = 1 if len(choice) < 3 else choice[2]
+            if not worth:
+                print "I'm sorry, I don't know what that item is. Can you try again?"
+            elif choice[0] == "buy":
+                pl = "" if count == 1 else "s"
+                print "You buy "+str(count)+" "+item+pl+"!"
                 for i in range(count):
-                    self.character.buy_loot(item,pq_item_worth(item))
+                    self.character.buy_loot(item,worth)
                     self.store.remove(item)
             elif choice[0] == "sell":
+                pl = "" if count == 1 else "s"
+                print "You sell "+str(count)+" "+item+pl+"!"
                 self.character.sell_loot(item,count)
             self.transactions()
-        print "You leave the shop and head back into the town square.",'\n'
         
     def visit_shrine(self):
         """Head to the Shrine of the Unknowable Gods to make offerings."""
         self.gods = godgen(2)
         msg = "The Shrine is mostly deserted at this time of day. Two of the altars catch your eye: one (choice 1) to "+self.gods[0]+", which offers Enlightenment on a sliding tithe scale; "
         msg += "and one (choice 2) to "+self.gods[1]+", which promises Materialism for a single lump sum of 30,000gp."
-        print msg, '\n', "Choice# Offering, or Leave"
+        print textwrap.fill(msg+"\nChoice# Offering, or Leave")
         choice = get_user_input("Shrine> ",character=self.character,allow_sheet=True,allow_equip=True,allow_help=True).lower()
         while choice != "leave":
             choice = choice.split()
             if len(choice) < 2 or (choice[0] != "1" and choice[0] != "2"):
                 print "You need to pick both an altar number (1 or 2) and an offering amount."
-                choice = raw_input("Shrine> ").lower()
+                choice = get_user_input("Shrine> ",character=self.character,allow_sheet=True,allow_equip=True,allow_help=True).lower()
                 continue
             try:
                 offering = int(choice[1])
             except:
                 print "You need to pick both an altar number (1 or 2) and an offering amount."
-                choice = raw_input("Shrine> ").lower()
+                choice = get_user_input("Shrine> ",character=self.character,allow_sheet=True,allow_equip=True,allow_help=True).lower()
                 continue
             self.offering(choice[0],offering)
             choice = get_user_input("Shrine> ",character=self.character,allow_sheet=True,allow_equip=True,allow_help=True).lower()
@@ -260,13 +273,13 @@ class PQ_RPG(object):
         
     def offering(self,choice,amount):
         if amount < 0:
-            print "You can't take money out of the offering bowl, not without offending "+self.gods[int(choice)-1]+", which you do NOT want to do.", '\n'
+            print textwrap.fill("You can't take money out of the offering bowl, not without offending "+self.gods[int(choice)-1]+", which you do NOT want to do.")
             return
         elif amount == 0:
-            print "Nothing ventured, nothing gained.", '\n'
+            print "Nothing ventured, nothing gained."
             return
         elif amount > self.character.loot['gp']:
-            print "You don't have enough gold for that, man. Go back to the dungeon and make some scratch! (Or at least, put less in the offering bowl.)", '\n'
+            print textwrap.fill("You don't have enough gold for that, man. Go back to the dungeon and make some scratch! (Or at least, put less in the offering bowl.)")
             return
         if choice == '1':
             try:
@@ -282,7 +295,7 @@ class PQ_RPG(object):
             self.shrinexp = newexp
             msg = "The bounds of your mind are expanded by a moment of attention from "+self.gods[0]
             msg += "; this may not actually be a good thing, but at least you gain "+str(netexp)+" experience."
-            print msg, '\n'
+            print textwrap.fill(msg)
             self.character.defeat_enemy(netexp,{'gp':-amount})
             if self.character.exp >= self.character.level * 10:
                 self.character.levelup()
@@ -291,7 +304,7 @@ class PQ_RPG(object):
             if amount < 30000:
                 msg = "Nothing happens except for a feeling of insufficient funds... "
                 msg += "you scoop the gold back out of the offering bowl before anyone sees you, cheapskate."
-                print msg, '\n'
+                print textwrap.fill(msg)
                 return
             typechoice = random.choice([random.randint(0,2) for i in range(6)])
             type1 = ["ring","rarmor","rweapon"][t]
@@ -316,10 +329,10 @@ class PQ_RPG(object):
             if type1a == "ring":
                 msg += "Ring of "
             msg += riches+" in your lootbag!"
-            print msg, '\n'
+            print textwrap.fill(msg)
             return
 
     def save(self):
         d = shelve.open(os.path.expanduser('data/pq_saves.db'))
-        d[self.player] = self
+        d[self.player_name] = self
         d.close()

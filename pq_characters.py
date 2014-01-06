@@ -3,7 +3,7 @@
 #  Part of Percival's Quest RPG
 
 from pq_namegen import web_namegen
-from pq_utilities import collapse_list, choose_from_list
+from pq_utilities import *
 from pq_equipment import *
 import random
 
@@ -64,15 +64,16 @@ class PQ_Character(object):
     
     def chargen(self,player):
         """Generate a new character using (possibly random) race, class, and feat choices."""
-        print "It's time to generate a character! At any of the prompts below, enter 'random' (no quotes) to use a random choice.", '\n'
+        print "It's time to generate a character! At any of the prompts below, enter 'random' (no quotes) to use a random choice."
         self.player = player
-        self.name = ng(5,12,2).replace('\n',' ')
-        print "Available races: "+", ".join(pq_races.keys())
+        self.name = color.GREEN+web_namegen(5,12,2).replace('\n',' ')+color.END
+        self.level = 1
+        print "Available races: "+", ".join(sorted(pq_races.keys()))
         race = choose_from_list("Race> ",pq_races.keys(),rand=True,character=self,allowed=['sheet','help'])
-        print "Available classes: "+", ".join(pq_classes.keys())
+        print "Available classes: "+", ".join(sorted(pq_classes.keys()))
         clas = choose_from_list("Class> ",pq_classes.keys(),rand=True,character=self,allowed=['sheet','help'])
         nfeat = 2 if race.lower() == "human" else 1
-        print "Available feats: "+", ".join(pq_feats.keys())
+        print "Available feats: "+", ".join(sorted(pq_feats.keys()))
         feats = []
         for i in range(nfeat):
             feat = choose_from_list("Feat> ",pq_feats.keys(),rand=True,character=self,allowed=['sheet','help'])
@@ -109,27 +110,30 @@ class PQ_Character(object):
         
     def tellchar(self):
         """Print out the character sheet"""
-        print self.name+' (Player: '+self.player+')', '\n'
-        print ' '.join([self.race.capitalize(),self.clas.capitalize(),str(self.level)]), '\n'
-        statstring = sum([[pq_stats_short[i],str(self.stats[i])] for i in range(0,6)],[])
+        print color.BOLD+self.name+color.END+' (Player: '+self.player+')'
+        print color.BOLD+' '.join([self.race.capitalize(),self.clas.capitalize(),str(self.level)])+color.END
+        statstring = sum([[color.BOLD+pq_stats_short[i]+color.END,str(self.stats[i])] for i in range(0,6)],[])
         feats = collapse_stringlist(self.feats,True,True)
         feats = ', '.join(sorted(feats))
-        print '; '.join([' '.join(statstring),'hp '+str(self.currenthp)+'/'+str(self.hp),
-            'sp '+str(self.currentsp)+'/'+str(self.sp),'exp '+str(self.exp)+'/'+str(self.level*10),feats]), '\n'
+        print '; '.join([' '.join(statstring),color.BOLD+'hp '+color.END+str(self.currenthp)+'/'+str(self.hp),
+            color.BOLD+'sp '+color.END+str(self.currentsp)+'/'+str(self.sp),
+            color.BOLD+'exp '+color.END+str(self.exp)+'/'+str(self.level*10),feats])
         if not self.gear['armor']['name']:
-            armor = 'Armor: None (0)'
+            armor = color.BOLD+'Armor:'+color.END+' None (0)'
         else:
-            armor = 'Armor: '+self.gear['armor']['name']+' ('+str(self.gear['armor']['rating'])+')'
+            armor = color.BOLD+'Armor:'+color.END+' '+self.gear['armor']['name']+ \
+                ' ('+str(self.gear['armor']['rating'])+')'
         if not self.gear['weapon']['name']:
-            weapon = 'Weapon: None (-1)'
+            weapon = color.BOLD+'Weapon:'+color.END+' None (-1)'
         else:
-            weapon = 'Weapon: '+self.gear['weapon']['name']+' ('+str(self.gear['weapon']['rating'])+')'
+            weapon = color.BOLD+'Weapon:'+color.END+' '+self.gear['weapon']['name']+ \
+                ' ('+str(self.gear['weapon']['rating'])+')'
         if not self.gear['ring']:
-            ring = 'Ring: None'
+            ring = color.BOLD+'Ring:'+color.END+' None'
         else:
-            ring = 'Ring: '+self.gear['ring']
-        print '; '.join(['Skills: '+', '.join(self.skill),armor,weapon,ring]), '\n'
-        lootbag = collapse_list(self.loot['items'],True,True)
+            ring = color.BOLD+'Ring:'+color.END+' '+self.gear['ring']
+        print '; '.join([color.BOLD+'Skills: '+color.END+', '.join(self.skill),armor,weapon,ring])
+        lootbag = collapse_stringlist(self.loot['items'],True,True)
         for i,f in enumerate(lootbag):
             for l in f.split():
                 if l.lower() in [x.lower() for x in pq_magic['ring'].keys()]:
@@ -144,7 +148,7 @@ class PQ_Character(object):
         """Increasing level, including the feat choice that you get every level."""
         self.exp -= self.level * 10
         self.level += 1
-        print "You have leveled up! Please choose a feat; if you would like one randomly chosen for you, enter Random.", '\n'
+        print "You have leveled up! Please choose a feat; if you would like one randomly chosen for you, enter Random."
         print "Available feats: "+", ".join(pq_feats.keys())
         feat_choice = choose_from_list("Feat> ",pq_feats.keys(),rand=True,character=self,allowed=['sheet','help','equip'])
         if feat_choice.lower() in 'improvedinitiative':
@@ -158,7 +162,7 @@ class PQ_Character(object):
         self.sp += 2
         self.atk = [self.gear['weapon']['rating'],self.stats[0]]
         self.dfn = [self.gear['armor']['rating'],self.stats[1]]
-        print "Level up complete!", '\n'
+        print "Level up complete!"
         self.tellchar()
     
     def sleep(self):
@@ -169,21 +173,21 @@ class PQ_Character(object):
         self.currenthp = self.hp
         self.currentsp = self.sp
         
-    def ouch(self,dmg):
+    def ouch(self,damage):
         """Deal damage to self. OW"""
-        self.currenthp -= dmg
+        self.currenthp -= damage
         
-    def cure(self,dmg):
+    def cure(self,damage):
         """Heal self. YAY"""
-        self.currenthp = self.hp if self.currenthp + lvl > self.hp else self.currenthp + lvl
+        self.currenthp = self.hp if self.currenthp + damage > self.hp else self.currenthp + damage
         
-    def sammich(self, lvl):
+    def sammich(self, level):
         """Eat a sandwich slowly in an empty room, regain some sp and hp."""
         self.temp = {}
         self.tempturns = {}
         self.conditions = {}
-        self.cure(lvl)
-        self.currentsp = self.sp if self.currentsp + lvl > self.sp else self.currentsp + lvl
+        self.cure(level)
+        self.currentsp = self.sp if self.currentsp + level > self.sp else self.currentsp + level
         
     def temp_bonus(self, stat, bonus, turns):
         """Apply a temporary bonus or penalty to self."""
@@ -191,16 +195,20 @@ class PQ_Character(object):
             if self.temp.get(i,False):
                 sign = -1 if bonus < 0 else 1
                 bonus = sign * max([abs(self.temp[i]),abs(bonus)]) #overwrite with whichever bonus is higher, and reset turns
-            self.temp[i] = bon
+            self.temp[i] = bonus
             self.tempturns[i] = turns
         
     def equip(self):
         """Equip an item, unequipping extant item if necessary."""
         if not self.loot['items']:
-            print "You have nothing to equip!", '\n'
+            print "You have nothing to equip!"
             return
-        print "Lootbag: "+", ".join(collapse_stringlist(self.loot['items'],sortit=True,addcounts=True)), '\n'
-        equipment = choose_from_list("Equip> ",self.char.loot['items'],rand=False,character=self,allowed=['sheet','help'])
+        print "What would you like to equip?"
+        lootbag = ['Ring of '+i if i in pq_magic['ring'].keys() else i for i in self.loot['items']]
+        lootbag_basic = collapse_stringlist(lootbag,sortit=True,addcounts=False)
+        print "Lootbag: "+", ".join(collapse_stringlist(lootbag,sortit=True,addcounts=True))
+        equipment = choose_from_list("Equip> ",lootbag_basic,rand=False,character=self,allowed=['sheet','help'])
+        equipment = equipment.replace('Ring of ','')
         type = pq_item_type(equipment)
         oldequip = ''
         if type[0] == "ring":
@@ -215,12 +223,15 @@ class PQ_Character(object):
             new_rating = pq_item_rating(type,equipment)
             if self.gear[type[0]]['name']:
                 self.loot['items'].append(self.gear[type[0]]['name'])
-                oldequip = self.gear['armor']['name']
+                oldequip = self.gear[type[0]]['name']
             self.gear[type[0]]['name'] = equipment
             self.gear[type[0]]['rating'] = new_rating
             self.loot['items'].remove(equipment)
         self.atk = [self.gear['weapon']['rating'],self.stats[0]]
         self.dfn = [self.gear['armor']['rating'],self.stats[1]]
+        print equipment+" equipped!"
+        if oldequip:
+            print oldequip+" unequipped!"
         return
             
     def complete_quest(self, exp, gp):

@@ -38,11 +38,12 @@ class PQ_Enemy(object):
             with open('data/pq_bestiary.json') as f:
                 pq_monsters = json.load(f)
             self.level = lvl
-            self.name = random.choice(pq_monsters[lvl].keys())
+            self.name = random.choice(pq_monsters[str(lvl)].keys())
+            this_monster = pq_monsters[str(lvl)][self.name]
             for i in range(0,6):
                 stat_roll = random.choice([random.randint(1,6) for j in range(0,6)])
-                self.stats[i] = stat_roll + pq_monsters[lvl][self.name]['stat'][i]
-            self.skill = pq_monsters[lvl][self.name]['skill']
+                self.stats[i] = stat_roll + this_monster['stat'][i]
+            self.skill = this_monster['skill']
             for i in range(0,lvl):
                 self.hp += random.choice([random.randint(max([1,self.stats[3]/2]),self.stats[3]) for j in range(0,6)])
             self.currenthp = self.hp
@@ -76,7 +77,7 @@ class PQ_Enemy(object):
     
     def cure(self, damage):
         """Cure damage to self. Much nicer."""
-        self.currenthp = self.hp if self.currenthp + lvl > self.hp else self.currenthp + lvl
+        self.currenthp = self.hp if self.currenthp + damage > self.hp else self.currenthp + damage
 
     def temp_bonus(self, stat, bonus, turns):
         """Apply a temporary bonus or penalty to self."""
@@ -96,12 +97,12 @@ class PQ_Quest(PQ_Enemy):
     def gen(self, lvl):
         """Generate a Quest monster and Macguffin I mean artifact."""
         self.level = lvl
-        self.name = simple_namegen(2,5)[0].capitalize()
-        self.description = monster_gen()[0]
+        self.name = simple_namegen(2,5).capitalize()
+        self.description = monster_gen()
         for i in range(0,6): 
             statroll = random.choice([random.randint(1,6) for j in range(0,6)])
             self.stats[i] = statroll + lvl
-        artifact = namegen.artygen()[0].split(':')
+        artifact = artygen().split(':')
         self.treasure['quest'] = artifact[0].strip()
         self.artifact = [a.strip() for a in artifact]
         self.skill = 'Cure'

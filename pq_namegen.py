@@ -124,14 +124,14 @@ def dragon_namegen(minsyl = 2, maxsyl = 4, n = 1):
     
 def artygen(n = 1):
     """Generate a powerful artifact."""
-    with open('pq_artifact_dict.json') as f:
+    with open('data/pq_artifact_dict.json') as f:
         arty = json.load(f)
     artifact = []
     for k in range(0,n):
         artifact_pieces = []
         for i in arty:
             artifact_pieces.append(random.choice([random.choice(i) for j in range(0,6)]))
-        artifact.append(' '.join(rr))
+        artifact.append(' '.join(artifact_pieces))
     if n == 1:
         return artifact[0]
     return artifact
@@ -141,7 +141,7 @@ def artygen(n = 1):
 
 def monster_gen(n = 1):
     """Generate a monster description"""
-    with open('pq_monster_description_dict.json') as f:
+    with open('data/pq_monster_description_dict.json') as f:
         monster_description = json.load(f)
     monster = []
     for kk in range(0,n):
@@ -204,7 +204,7 @@ def monster_gen(n = 1):
 
 def taverngen(n = 1, long = False):
     """Generate a random tavern"""
-    with open('pq_taverns_tuple.json') as f:
+    with open('data/pq_taverns_tuple.json') as f:
         taverns = json.load(f)
     tavern = []
     for kk in range(0,n):
@@ -220,12 +220,12 @@ def taverngen(n = 1, long = False):
 #riddle generator, using wordlock chest riddles from betrayal at krondor
     
 def riddlegen(n = 1):
-    with open('pq_riddle_dict.json') as f:
+    with open('data/pq_riddle_dict.json') as f:
         riddles = json.load(f)
     riddle = []
     for i in range(n):
         answer = random.choice([random.choice(riddles.keys()) for j in range(6)])
-        text = riddles[ans]
+        text = riddles[answer]
         riddle.append((answer,text))
     if n == 1:
         riddle = riddle[0]
@@ -247,7 +247,7 @@ def numgen(l = 4, n = 1):
 #produce a random deity from the Lovecraft mythos
     
 def godgen(n = 1):
-    with open('pq_gods_tuple.json') as f:
+    with open('data/pq_gods_tuple.json') as f:
         gods = json.load(f)
     god = random.choice([random.sample(gods,n) for j in range(6)])
     if type(god) is list and len(god) == 1:

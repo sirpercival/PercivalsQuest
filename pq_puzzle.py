@@ -43,31 +43,36 @@ class PQ_Puzzle(object):
             msg1 += " A sinister face materializes in its murky surface, looking directly at you."
         else:
             msg1 += " The "+self.thing+" addresses you."
-        msg2 = "'Welcome to the Dungeon, adventurer. Portents have foreshadowed your coming. I am here to aid you on your journey, should you prove worthy."
-        msg2 += " I offer you choices three: you may play a game, for Gold; solve a riddle, for Riches; or undergo a Trial of Being, for Knowledge. Choose your prize, and choose well.'"
+        msg2 = color.BOLD+" 'Welcome to the Dungeon, adventurer. Portents have foreshadowed your coming. I am here to aid you on your journey, should you prove worthy."
+        msg2 += " I offer you choices three: you may play a game, for Gold; solve a riddle, for Riches;" \
+            " or undergo a Trial of Being, for Knowledge. Choose your prize, and choose well.'"+color.END
         msg3 = "(Your choices are Gold, Riches, Knowledge, or Skip.)"
-        print msg1, '\n', msg2, '\n', msg3, '\n'
+        print textwrap.fill(msg1+msg2), '\n', msg3
         choice = choose_from_list("Choice> ",["gold","riches","knowledge","skip"],character=self.char,allowed=['sheet','help','equip'])
         self.choice = choice
         if self.choice == "gold":
-            msg = "The "+self.thing+" nods approvingly. 'You have chosen the game; here are the rules. I have selected a set of four digits, in some order. "
-            msg += "You have 10 chances to guess the digits, in the correct order. If you are polite, I may be persuaded to give you a hint... Now, begin; you have 10 chances remaining.'"
+            msg = "The "+self.thing+" nods approvingly. "+color.BOLD+"'You have chosen the game;" \
+                " here are the rules. I have selected a set of four digits, in some order. "\
+                "You have 10 chances to guess the digits, in the correct order. If you are polite," \
+                " I may be persuaded to give you a hint... Now, begin; you have 10 chances remaining.'"+color.END
             msg2 = "(Guess should be ####)"
-            print msg, '\n', msg2, '\n'
+            print textwrap.fill(msg), '\n', msg2
             self.check_numguess()
             return
         elif self.choice == "riches":
-            msg = "The "+self.thing+" nods slowly. 'You have chosen the riddle; here are the rules. I will tell you the riddle, which has an answer one word long. "
-            msg += "You have three chances to guess the answer. If it goes poorly, I may decide to give you a hint. Here is the riddle: "
-            msg2 = "Now, begin your guess. You have three chances remaining.'"
-            print msg, '\n', self.riddle, '\n', msg2, '\n'
+            msg = "The "+self.thing+" nods slowly. "+color.BOLD+"'You have chosen the riddle;" \
+                " here are the rules. I will tell you the riddle, which has an answer one word long. " \
+                "You have three chances to guess the answer. If it goes poorly, I may decide to give " \
+                "you a hint. Here is the riddle: "
+            msg2 = "Now, begin your guess. You have three chances remaining.'"+color.END
+            print textwrap.fill(msg), '\n', textwrap.fill(self.riddle), '\n', msg2
             self.check_riddleguess()
             return
         elif self.choice == "knowledge":
-            msg = "The "+self.thing+"'s face spreads in a predatory smile. 'As you wish. The Trial consists of three tests; if you succeed at all three, you will be rewarded."
-            msg += " The first will begin as soon as you are ready.'"
-            msg2 = "(Tell the "+self.thing+" that you're ready with .rpgpuzzle)"
-            print msg, '\n', msg2, '\n'
+            msg = "The "+self.thing+"'s face spreads in a predatory smile. "+color.BOLD+"'As you wish. " \
+                "The Trial consists of three tests; if you succeed at all three, you will be rewarded." \
+                " The first test will begin... now.'"+color.END
+            print textwrap.fill(msg)
             self.trialofbeing()
             return
         elif self.choice == "skip":
@@ -75,7 +80,9 @@ class PQ_Puzzle(object):
     
     def failure(self):
         """Handler for failure to complete puzzle."""
-        print "The "+self.thing+" stares at you impassively. 'You have been found wanting. How disappointing.' Then it vanishes, leaving no trace that this room of the dungeon was ever occupied.", '\n'
+        msg = "The "+self.thing+" stares at you impassively. "+color.BOLD+"'You have been found wanting. " \
+            "How disappointing.'"+color.END+" Then it vanishes, leaving no trace that this room of the dungeon was ever occupied."
+        print textwrap.fill(msg)
         if self.choice == "knowledge" and self.damage > 0:
             self.char.ouch(self.damage)
             msg = "The Trial was extremely taxing; you take "+str(self.damage)+" damage"
@@ -92,14 +99,17 @@ class PQ_Puzzle(object):
     
     def success(self):
         """Handler for successful puzzle completion."""
-        print "The "+self.thing+" seems pleased. 'You have proven worthy, and now may receive your reward.' Then it vanishes, leaving no trace that this room of the dungeon was ever occupied.", '\n'
+        msg = "The "+self.thing+" seems pleased. "+color.BOLD+"'You have proven worthy, " \
+            "and now may receive your reward.'"+color.END+" Then it vanishes, leaving no " \
+            "trace that this room of the dungeon was ever occupied."
+        print textwrap.fill(msg)
         msg = "You gain "
         if self.choice == "gold":
             msg += str(self.gold)+" gp!"
             print msg, '\n'
             self.char.defeat_enemy(0,{'gp':self.gold})
         if self.choice == "riches":
-            typ = item_type(self.riches)
+            typ = pq_item_type(self.riches)
             msg += "a "
             if typ[0] == "ring":
                 msg += "Ring of "
@@ -129,7 +139,7 @@ class PQ_Puzzle(object):
         lose = {'Attack':"The contracting walls squeeze you to unconsciousness...",'Defense':"The stone spikes break through your defenses...",
             'Reflexes':"You fall into a chasm...",'Fortitude':"You are forced to oblivion...",'Mind':"Your mental defenses are overcome...",'Skill':"You come up short..."}
         for i,s in enumerate(sta):
-            print "The "+("first","second","third")[i]+" challenge begins. "+tests[s], '\n'
+            print textwrap.fill("The "+("first","second","third")[i]+" challenge begins. "+tests[s]), '\n'
             result = atk_roll([0,self.char.stats[pq_stats[s]]],[0,self.trial_num],0,0)
             if result < 0:
                 print lose[s], '\n'
@@ -174,7 +184,7 @@ class PQ_Puzzle(object):
         self.failure()
         return
         
-    def check_numguess(self, guess):
+    def check_numguess(self):
         """A numeric Mastermind game! Give feedback on the guesses."""
         while self.numguess > 0:
             guess = get_user_input("Guess> ", character=self.char, allow_sheet=True, allow_equip=True, allow_help=True)
