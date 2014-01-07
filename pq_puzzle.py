@@ -5,7 +5,7 @@
 from pq_namegen import riddlegen, numgen
 from pq_utilities import *
 from pq_equipment import *
-import random
+import random, time
 
 pq_stats = {'Attack':0,'Defense':1,'Reflexes':2,'Fortitude':3,'Mind':4,'Skill':5}
 
@@ -139,6 +139,7 @@ class PQ_Puzzle(object):
         lose = {'Attack':"The contracting walls squeeze you to unconsciousness...",'Defense':"The stone spikes break through your defenses...",
             'Reflexes':"You fall into a chasm...",'Fortitude':"You are forced to oblivion...",'Mind':"Your mental defenses are overcome...",'Skill':"You come up short..."}
         for i,s in enumerate(sta):
+            time.sleep(1)
             print textwrap.fill("The "+("first","second","third")[i]+" challenge begins. "+tests[s]), '\n'
             result = atk_roll([0,self.char.stats[pq_stats[s]]],[0,self.trial_num],0,0)
             if result < 0:
