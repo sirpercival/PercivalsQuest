@@ -15,9 +15,10 @@ pq_reverse_stats = {0:"Attack", 1:"Defense", 2:"Reflexes",
 
 def pq_smite(user, target):
     """Perform a Smite -- a single attack with a buff of 1dSkill"""
-    temp_atk = user.atk
+    temp_atk = user.combat['atk']
     temp_atk[1] += random.randint(1, user.stats[5])
-    hit = atk_roll(temp_atk, target.dfn, user.temp['stat'].get("Attack", 0), \
+    hit = atk_roll(temp_atk, target.combat['dfn'], \
+        user.temp['stat'].get("Attack", 0), \
         target.temp['stat'].get("Defense", 0))
     return (hit > 0, hit)
 
@@ -27,7 +28,8 @@ def pq_cure(user, target):
     cure = random.randint(1, user.stats[5] + \
         user.temp['stat'].get("Skill", 0)) + user.level
     user.cure(cure)
-    hit = atk_roll(user.atk, target.dfn, user.temp['stat'].get("Attack", 0), \
+    hit = atk_roll(user.combat['atk'], target.combat['dfn'], \
+        user.temp['stat'].get("Attack", 0), \
         target.temp['stat'].get("Defense", 0))
     targstring = "You are " if hasattr(user,"player") else "The monster is " 
     print targstring+"cured for "+str(cure)+" hp! An attack follows."
@@ -36,7 +38,8 @@ def pq_cure(user, target):
 def pq_trip(user, target):
     """Perform a Trip -- a single attack for half damage + 
     debuff Attack 1dSkill"""
-    hit = atk_roll(user.atk, target.atk, user.temp['stat'].get("Attack", 0), \
+    hit = atk_roll(user.combat['atk'], target.combat['atk'], \
+        user.temp['stat'].get("Attack", 0), \
         target.temp['stat'].get("Attack", 0))
     if hit > 0:
         hit = max([hit/2, 1])
@@ -64,10 +67,10 @@ def pq_missile(user, target):
 
 def pq_doublestrike(user, target):
     """Perform a Doublestrike -- two attacks at -2"""
-    hit1 = max([0, atk_roll(user.atk, target.dfn, \
+    hit1 = max([0, atk_roll(user.combat['atk'], target.combat['dfn'], \
         user.temp['stat'].get("Attack", 0)-2, \
         target.temp['stat'].get("Defense", 0))])
-    hit2 = max([0, atk_roll(user.atk, target.dfn, \
+    hit2 = max([0, atk_roll(user.combat['atk'], target.combat['dfn'], \
         user.temp['stat'].get("Attack", 0)-2, \
         target.temp['stat'].get("Defense", 0))])
     hit = hit1 + hit2
@@ -79,7 +82,8 @@ def pq_backstab(user, target):
     check = atk_roll([0, user.stats[5]], [0, target.stats[3]], \
         user.temp['stat'].get("Skill", 0), \
         target.temp['stat'].get("Fortitude", 0))
-    hit = atk_roll(user.atk, target.dfn, user.temp['stat'].get("Attack", 0), \
+    hit = atk_roll(user.combat['atk'], target.combat['dfn'], \
+        user.temp['stat'].get("Attack", 0), \
         target.temp['stat'].get("Defense", 0))
     if hit > 0 and check > 0:
         return (hit > 0, hit * 2)
@@ -88,8 +92,9 @@ def pq_backstab(user, target):
 def pq_rage(user, target):
     """Perform a Rage -- a single attack with +Skill buff, 
     and -2 Defense self-debuff for 2 rounds"""
-    hit = atk_roll(user.atk, target.dfn, user.temp['stat'].get("Attack", 0) + \
-        user.stats[5], target.temp['stat'].get("Defense", 0))
+    hit = atk_roll(user.combat['atk'], target.combat['dfn'], \
+        user.temp['stat'].get("Attack", 0) + user.stats[5], \
+        target.temp['stat'].get("Defense", 0))
     user.temp_bonus(["Defense"], -2, 4)
     return (hit > 0, hit)
 
@@ -164,7 +169,7 @@ def pq_dominate(user, target):
         user.temp['stat'].get("Skill", 0), \
         target.temp['stat'].get("Mind", 0))
     if affect > 0:
-        hit = atk_roll(target.atk, target.dfn, \
+        hit = atk_roll(target.combat['atk'], target.combat['dfn'], \
             target.temp['stat'].get("Attack", 0) + affect, \
             target.temp['stat'].get("Defense", 0))
         targstring = "The monster is " if hasattr(user, "player") \
