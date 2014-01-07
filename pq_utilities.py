@@ -83,7 +83,10 @@ def pq_help():
     topic = choose_from_list("Help> ",help_topics.keys()+["Exit"])
     while topic != "Exit":
         print color.BOLD+"TOPIC: "+topic.upper()+color.END
-        print textwrap.fill(help_topics[topic])
+        if topic != "Armor" and topic != "Weapons":
+            print textwrap.fill(help_topics[topic])
+        else:
+            print help_topics[topic]
         topic = choose_from_list("Help> ",help_topics.keys()+["Exit"])
 
 class color:

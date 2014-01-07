@@ -80,10 +80,10 @@ def town(rpg):
 
 def dungeon(rpg):
     """Maintain interaction with the dungeon"""
-    if rpg.character.dead:
-        return
     dothis = ""
     while dothis != "Leave":
+        if rpg.character.dead:
+            return
         actions = ["Explore","Leave"] if rpg.whereareyou == "start" \
             else ["Explore","Backtrack"]
         print "You're in the dank dark dungeon. What do you want to do?", \
