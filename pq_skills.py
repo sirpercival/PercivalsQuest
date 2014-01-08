@@ -13,6 +13,8 @@ import random
 pq_reverse_stats = {0:"Attack", 1:"Defense", 2:"Reflexes",
     3:"Fortitude", 4:"Mind", 5:"Skill"}
 
+#ACTIVE SKILLS:
+
 def pq_smite(user, target):
     """Perform a Smite -- a single attack with a buff of 1dSkill"""
     temp_atk = user.combat['atk']
@@ -179,6 +181,23 @@ def pq_dominate(user, target):
         return (hit > 0, hit)
     return (affect > 0, 0)
     
+def pq_confusion(user, target):
+    """Perform a Confuse (Mind vs Mind); if successful, 
+    deal 1dSkill skill points damage"""
+    affect = atk_roll([0, user.stats[4]], [0, target.stats[4]], \
+        user.temp['stats'].get("Mind", 0), \
+        target.temp['stats'].get("Mind", 0))
+    if affect > 0:
+        damage = max([0, random.choice([random.randint(1, user.stats[5]) \
+            for i in range(0, 6)]) + user.temp['stats'].get("Skill", 0)])
+        targstring = "The monster is " if hasattr(user, "gear") \
+            else "You are "
+        pl= "s" if hasattr(user, "gear") else ""
+        print targstring + "confused, and lose" + pl + " " + str(damage) \
+            + " skill points!"
+        target.huh(damage)
+    return (affect > 0, 0)
+    
 def pq_evade(user, target):
     """Buff self with an Evade (+1dSkill to Defense)"""
     targstring = "You feel " if hasattr(user, "gear") \
@@ -187,20 +206,121 @@ def pq_evade(user, target):
     buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
     user.temp_bonus(["Defense"], buff, 4)
     return (True, 0)
+    
+def pq_acidspray(user, target):
+    """Perform an Acidspray -- Fort vs Def, full damage
+    + 1/2 damage as Def debuff for 2 rounds"""
+    hit = atk_roll([0, user.stats[3]], target.combat['dfn'], \
+        user.temp['stats'].get("Fortitude", 0), \
+        target.temp['stats'].get("Defense", 0))
+    if hit > 0:
+        debuff = max([hit/2, 1])
+        targstring = "The monster is " if hasattr(user, "gear") \
+            else "You are "
+        print targstring + "sprayed with acid!"
+        target.temp_bonus(["Defense"], debuff, 4)
+    return (hit > 0, hit)
+    
+def pq_telekinesis(user, target):
+    """Perform a TK (Skill vs Ref); if successful, enemy attacks self"""
+    affect = atk_roll([0, user.stats[5]], [0, target.stats[3]], \
+        user.temp['stats'].get("Skill", 0), \
+        target.temp['stats'].get("Reflexes", 0))
+    if affect > 0:
+        hit = atk_roll(target.combat['atk'], target.combat['dfn'], \
+            target.temp['stats'].get("Attack", 0) + affect, \
+            target.temp['stats'].get("Defense", 0))
+        targstring = "The monster is " if hasattr(user, "gear") \
+            else "You are "
+        targstring2 = "s itself!" if hasattr(user, "gear") else " yourself!"
+        print targstring + "manipulated, and attack" + targstring2
+        return (hit > 0, hit)
+    return (affect > 0, 0)
+    
+def pq_prismspray(user, target):
+    """Perform a Prismatic Spray (Skill vs random stat
+    to debuff that stat"""
+    effectstring = ('blunted', 'diminished', 'made sluggish', \
+        'weakened', 'befuddled', 'disconcerted')
+    statpick = random.choice([random.randint(0, 5) for i in range(6)])
+    affect = atk_roll([0, user.stats[5]], [0, target.stats[statpick]], \
+        user.temp['stats'].get("Skill", 0), \
+        target.temp['stats'].get(pq_reverse_stats[statpick], 0))
+    if affect > 0:
+        targstring = "The monster is " if hasattr(user, "gear") \
+            else "You are "
+        print targstring + effectstring[statpick] + "!"
+        target.temp_bonus([pq_reverse_stats[statpick]], -affect, 4)
+    return (affect > 0, 0)
+    
+def pq_burn(user, target):
+    """Perform a Burn (Atk vs Ref, applies Burning condition which
+    re-calls the skill each turn for 1dSkill turns."""
+    hit = atk_roll(user.combat['atk'], [0, target.stats[3]], \
+        user.temp['stats'].get("Attack", 0), \
+        target.temp['stats'].get("Reflexes", 0))
+    if hit > 0 and "burning" not in target.temp['condition']:
+        
+        targstring = "The monster is " if hasattr(user, "gear") \
+            else "You are "
+        print targstring + "burning!"
+        target.temp['condition']["burning"] = 4
+    return (hit > 0, hit)
+    
+#TIME FOR THE PASSIVE SKILLS!
+
+def pq_bardicknowledge(user, target):
+    """Passive skill: Learn information about the target"""
+    trigger_chance = user.level * 0.02
+    if random.random() < trigger_chance:
+        statstring = sum([[pq_stats_short[i], str(target.stats[i])] \
+            for i in range(6)], [])
+        print "You recall learning about this kind of creature!"
+        print "Enemy stats: " + " ".join(statstring)
+    return
+
+def pq_turning(user, target):
+    """Passive skill: chance to apply Turned condition, 
+    which prevents attack"""
+    trigger_chance = float(1 + 3 * user.level) / float(50 + 4 * user.level)
+    if random.random() < trigger_chance:
+        target.temp['condition']["turned"] = 2
+        print "Enemy is turned!"
+    return
+
+def pq_regeneration(user, target):
+    """Passive skill: regain lvl hp each round."""
+    user.cure(user.level[1])
+    return
+    
+def pq_shapechange(user, target):
+    """Passive skill: chance to gain 1-round buff every round."""
+    skills = ["Attack", "Defense", "Reflexes", "Fortitude"]
+    trigger_chance = user.level * 0.02
+    if random.random() < trigger_chance:
+        buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
+        user.temp_bonus(skills, buff, 2)
 
 pq_skill_library = {
-    "Backstap": pq_backstab,
+    "Acidspray": pq_acidspray,
+    "Backstab": pq_backstab,
+    "Burn": pq_burn,
     "Charm": pq_charm,
+    "Confusion": pq_confusion,
     "Cure": pq_cure,
+    "Darkness": pq_fear,
     "Dominate": pq_dominate,
     "Doublestrike": pq_doublestrike,
     "Entangle": pq_entangle,
     "Evade": pq_evade,
     "Fear": pq_fear,
+    "Flameblast": pq_burn,
     "Missile": pq_missile,
     "Petrify": pq_petrify,
     "Poison": pq_poison,
+    "Prismatic Spray": pq_prismspray,
     "Rage": pq_rage,
     "Smite": pq_smite,
+    "Telekinesis": pq_telekinesis,
     "Trip": pq_trip
     }

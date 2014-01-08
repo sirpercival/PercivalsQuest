@@ -125,7 +125,8 @@ class PQ_RPG(object):
         elif self.character.queststatus == "complete":
             print "Mayor Percival looks up excitedly. " + color.BOLD + \
                 "'You have it! Well, thank my lucky stars. " \
-                "You're a True Hero, " + self.character.name + "!'" + color.END
+                "You're a True Hero, " + self.character.name[0] + "!'" + \
+                color.END
             exp = 5 * (self.questlevel - 1)
             gold = int(random.random() * 2 + 1) * exp
             print "You gain " + str(exp) + " experience and " + str(gold) \

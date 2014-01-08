@@ -184,6 +184,10 @@ class PQ_Character(object):
         """Deal damage to self. OW"""
         self.hitpoints[0] -= damage
         
+    def huh(self, damage):
+        """Deal damage to self's skill points. WHUT"""
+        self.skillpoints[0] -= damage
+        
     def cure(self, damage):
         """Heal self. YAY"""
         self.hitpoints[0] = self.hitpoints[1] if self.hitpoints[0] + damage > \

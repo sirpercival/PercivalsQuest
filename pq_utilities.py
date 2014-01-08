@@ -42,7 +42,7 @@ def atk_roll(attack, defense, attack_adjust = 0, defense_adjust = 0):
 
 
 def choose_from_list(prompt, options, rand = False, character = None, \
-    allowed = None):
+    allowed = ["help"]):
     """Accept user input from a list of options."""
     allowed = [i.lower() for i in allowed]
     allow_sheet = "sheet" in allowed

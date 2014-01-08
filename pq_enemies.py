@@ -29,6 +29,7 @@ class PQ_Enemy(object):
         self.temp = {'stats':{}, 'statturns':{}, 'condition':{}}
         self.combat = {'atk':[0, self.stats[0]], 'dfn':[0, self.stats[1]]}
         self.skillcounter = 1
+        self.flee = True
         
     def gen(self, lvl):
         """Generate the monster based on dungeon level."""
@@ -55,6 +56,7 @@ class PQ_Enemy(object):
             self.treasure = pq_treasuregen(lvl)
             self.combat['atk'] = [0, self.stats[0]]
             self.combat['dfn'] = [0, self.stats[1]]
+            self.flee = this_monster.get("flee",True)
     
     def dragongen(self, lvl):
         """Generate a random dragon based on dungeon level, for level 10+ """
@@ -77,10 +79,15 @@ class PQ_Enemy(object):
         self.treasure = pq_treasuregen(lvl)
         self.combat['atk'] = [lvl / 3, self.stats[0]]
         self.combat['dfn'] = [lvl / 3, self.stats[1]]
+        self.flee = False
         
     def ouch(self, damage):
         """Deal damage to self. WHY WOULD YOU DO THIS IT'S INHUMANE"""
         self.hitpoints[0] -= damage
+        
+    def huh(self, damage):
+        """Deal damage to self's skill points. WHUT"""
+        self.skillpoints[0] -= damage
     
     def reset_skillcounter(self):
         """Reset the counter... for the skills..."""
@@ -130,3 +137,4 @@ class PQ_Quest(PQ_Enemy):
         self.skillpoints = [spi, spi]
         self.combat['atk'] = [lvl / 2, self.stats[0]]
         self.combat['dfn'] = [lvl / 2, self.stats[1]]
+        self.flee = False

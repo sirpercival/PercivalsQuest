@@ -12,6 +12,19 @@ from pq_skills import pq_skill_library as pqsl
 #from pq_equipment import *
 import random, textwrap
 
+def remove_expired(counterdict, also = None):
+    """Decrement and then remove expired elements 
+    from counterdict and, optionally, also"""
+    expired = []
+    for i in counterdict:
+        counterdict[i] -= 1
+        if counterdict[i] <= 0:
+            expired.append(i)
+    for i in expired:
+        del counterdict[i]
+        if also:
+            del also[i]
+
 class PQ_Combat(object):
     """The Combat Object(TM)(notreallyTM)"""
     def __init__(self, lvl, char, enemy):
@@ -57,7 +70,7 @@ class PQ_Combat(object):
     def death(self, target):
         """Handle if somebody dies"""
         if target == self.char:
-            print 'Sorry, '+self.char.player+', you have died. You can load ' \
+            print 'Sorry, '+self.char.name[1]+', you have died. You can load ' \
                 'from your last save, quit, or make a new character.'
             for i in self.char.temp:
                 self.char.temp[i] = {}
@@ -74,17 +87,16 @@ class PQ_Combat(object):
         if "charmed" in user.temp['condition']:
             targstring = "You are " if user == self.char else "The monster is "
             print targstring + "charmed, and cannot attack!"
-            self.advance_turn()
             return
         hit = atk_roll(user.combat['atk'], target.combat['dfn'], \
             user.temp['stats'].get("Attack", 0), \
             target.temp['stats'].get("Defense", 0))
         if hit > 0:
-            if not self.be_hit(target, hit):
-                self.advance_turn()
+            self.be_hit(target, hit)
+            return
         else:
             print "The attack is unsuccessful."
-            self.advance_turn()
+            return
             
     def use_skill(self, skill, user, target):
         """Parse the different skill options."""
@@ -97,7 +109,6 @@ class PQ_Combat(object):
         if "charmed" in user.temp['condition']:
             targstring = "You are " if user == self.char else "The monster is "
             print targstring + "charmed, and cannot use skills!"
-            self.advance_turn()
             return
         user.skillpoints[0] -= 1
         
@@ -112,12 +123,12 @@ class PQ_Combat(object):
         #then everything else, using the skill library
         hit = pqsl[skill](user, target)
         if hit[0] and hit[1] > 0:
-            if self.be_hit(target, hit[1]):
-                return 
+            self.be_hit(target, hit[1])
+            return 
         elif not hit[0]:
-            targstring = "you." if hasattr(target, "player") else "the enemy."
+            targstring = "you." if hasattr(target, "gear") else "the enemy."
             print "The " + skill + " failed to affect " + targstring
-        self.advance_turn()
+            return
 
     def win_combat(self):
         """Handle scenarious where (by some miniscule chance)
@@ -147,6 +158,7 @@ class PQ_Combat(object):
         if self.char.level[0] >= self.char.level[1] * 10:
             self.char.levelup()
         self.done = True
+        return
         
     def runaway(self, who, chance = 0.5):
         """Check Flee chance"""
@@ -158,7 +170,6 @@ class PQ_Combat(object):
         if condition:
             targstring = "You are " if who == self.char else "The monster is "
             print targstring + condition + ", and cannot flee!"
-            self.advance_turn()
             return
         if random.random() < chance:
             if who == self.char:
@@ -167,6 +178,7 @@ class PQ_Combat(object):
             else:
                 print "Your enemy turns tail and books it back " \
                     "into the dungeon."
+            self.done = True
             return True
         else:
             if who == self.char:
@@ -192,11 +204,9 @@ class PQ_Combat(object):
         elif action in self.char.skill:
             self.use_skill(action, self.char, self.enemy)
         elif action == "Run Away":
-            if not self.runaway(self.char):
-                self.advance_turn()
+            self.runaway(self.char)
         elif action == "Equip":
             self.char.equip()
-            self.advance_turn()
             
     def monster_turn(self):
         """YAY THE ENEMY GOES... this handles 
@@ -204,9 +214,10 @@ class PQ_Combat(object):
         self.enemy.skillcounter -= 1
         hitpointratio = float(self.enemy.hitpoints[0]) / \
             float(self.enemy.hitpoints[1])
-        if self.enemy.skillpoints[0] <= 0 or hitpointratio < 0.1:
-            if not self.runaway(self.enemy):
-                self.advance_turn()
+        if self.enemy.flee and self.enemy.skillpoints[0] <= 0 and \
+            hitpointratio < 0.1 and random.random() < float(7 + \
+            self.enemy.stats[4])/100.:
+            self.runaway(self.enemy)
             return
         skillcheck1 = self.enemy.skillpoints[0] > 0
         skills_ok = []
@@ -228,43 +239,20 @@ class PQ_Combat(object):
         else:
             print "It tries to cause you bodily harm!"
             self.attack_enemy(self.enemy, self.char)
-        
+    
     def advance_turn(self):
         """Advance the turn, decrementing counters on 
         temporary effects and adjudicating turn order."""
-        self.turn += 1
-        whos = self.turnorder[self.turn % 2]
-        expired = []
-        for i in self.char.temp['stats']:
-            self.char.temp['statturns'][i] -= 1
-            if self.char.temp['statturns'][i] <= 0:
-                expired.append(i)
-        for i in expired:
-            del self.char.temp['stats'][i], \
-                self.char.temp['statturns'][i]
-        expired = []
-        for i in self.char.temp['condition']:
-            self.char.temp['condition'][i] -= 1
-            if self.char.temp['condition'][i] <= 0:
-                expired.append(i)
-        for i in expired:
-            del self.char.temp['condition'][i]
-        expired = []
-        for i in self.enemy.temp['stats']:
-            self.enemy.temp['statturns'][i] -= 1
-            if self.enemy.temp['statturns'][i] <= 0:
-                expired.append(i)
-        for i in expired:
-            del self.enemy.temp['statturns'][i], \
-                self.enemy.temp['stats'][i]
-        expired = []
-        for i in self.enemy.temp['condition']:
-            self.enemy.temp['condition'][i] -= 1
-            if self.enemy.temp['condition'][i] <= 0:
-                expired.append(i)
-        for i in expired:
-            del self.enemy.temp['condition'][i]
-        if whos == 'monster':
-            self.monster_turn()
-        else:
-            self.pc_turn()
+        while not self.done:
+            self.turn += 1
+            whos = self.turnorder[self.turn % 2]
+            remove_expired(self.char.temp['statturns'], \
+                also = self.char.temp['stats'])
+            remove_expired(self.char.temp['condition'])
+            remove_expired(self.enemy.temp['statturns'], \
+                also = self.enemy.temp['stats'])
+            remove_expired(self.enemy.temp['condition'])
+            if whos == 'monster':
+                self.monster_turn()
+            else:
+                self.pc_turn()
