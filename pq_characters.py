@@ -150,7 +150,7 @@ class PQ_Character(object):
     def levelup(self):
         """Increasing level, including the feat choice 
         that you get every level."""
-        self.level[0] -= self.level * 10
+        self.level[0] -= self.level[1] * 10
         self.level[1] += 1
         print "You have leveled up! Please choose a feat; if you would like " \
             "one randomly chosen for you, enter Random."
