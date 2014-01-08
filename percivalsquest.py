@@ -40,7 +40,7 @@ def town(rpg):
             print "You are dead!"
             deadchar(rpg)
             break
-        print "Where would you like to go?'\n'", "Options: Home, " \
+        print "Where would you like to go?\n", "Options: Home, " \
             "Questhall, Shop, Shrine, or Dungeon [Level#] (max "+ \
             str(rpg.maxdungeonlevel)+")"
         destinations = ["Dungeon", "Home", "Questhall", "Quest", \
@@ -53,7 +53,7 @@ def town(rpg):
                 "the bedbugs with your ineffectual fists, "\
                 "you lay down and sleep."
             rpg.character.sleep()
-            rpg.save()
+            save(rpg)
             continue
         elif goto in ["Questhall", "Quest"]:
             print "You head to the Questhall."
@@ -123,7 +123,31 @@ def dungeon(rpg):
                 deadchar(rpg)
             else:
                 continue
-        
+
+def save(rpg):
+    """Save it, baby!"""
+    prefix = ""
+    from platform import system
+    import os
+    if system() in ['Linux', 'Darwin', 'Unix']:
+        prefix = "."
+    savedb = shelve.open(os.path.expanduser("~/"+prefix+"pq_saves"))
+    savedb[rpg.player_name] = rpg
+    savedb.close()
+    
+def load(rpg):
+    """Load it, baby!"""
+    prefix = ""
+    from platform import system
+    import os
+    if system() in ['Linux', 'Darwin', 'Unix']:
+        prefix = "."
+    savedb = shelve.open(os.path.expanduser("~/"+prefix+"pq_saves"))
+    if rpg.player_name not in savedb:
+        return None
+    else:
+        return savedb[rpg.player_name]
+
 def deadchar(rpg):
     """Deal with character death"""
     print "What would you like to do? Options: "\
@@ -135,13 +159,19 @@ def deadchar(rpg):
         deadchar(rpg)
         return
     if dothis == "Load":
-        save_db = shelve.open(os.path.expanduser('~/pq_saves'))
-        rpg = save_db[rpg.player_name]
-        save_db.close()
-        print "Game successfully loaded!", "You begin in the town square."
-        rpg.character.tellchar()
-        town(rpg)
-        return
+        rpg = load(rpg)
+        if not rpg:
+            print "I'm sorry, that didn't work... maybe you deleted " \
+                "the save file? Anyway..."
+            deadchar(rpg)
+            return
+        else:
+            print "Game successfully loaded!"
+            print "You begin in the town square."
+            rpg.character.tellchar()
+            rpg.destination("town")
+            town(rpg)
+            return
     if dothis == "Generate":
         rpg = generate(rpg)
         print "You begin in the town square."
@@ -152,7 +182,7 @@ def generate(rpg):
     """Wrapper for making a new character"""
     print "Time to make a new character! It'll be saved under this player name."
     rpg.character.chargen(rpg.player_name)
-    rpg.save()
+    save(rpg)
     msg = "In the town of North Granby, the town militia has recently " \
         "discovered that the plague of monsters harrassing the townspeople " \
         "originates from a nearby dungeon crammed with nasties. As the " \
@@ -172,14 +202,15 @@ def main():
         color.END)
     msg = "Welcome, "+player_name+"!"
     rpg_instance = pqr.PQ_RPG(player_name)
-    save_db = shelve.open(os.path.expanduser('~/pq_saves'))
     newgame = False
-    if player_name in save_db:
+    temp_rpg = load(rpg_instance)
+    if temp_rpg:
         msg += " You currently have a game saved. Would you like to load it?"
         print msg
         loadit = raw_input("Load (y/n)> ")
         if loadit.lower() in ["y", "yes", "load"]:
-            rpg_instance = save_db[player_name]
+            rpg_instance = temp_rpg
+            del temp_rpg
             print "Game successfully loaded."
             rpg_instance.character.tellchar()
         else:
@@ -187,7 +218,6 @@ def main():
     else:
         print msg + " You don't have a character saved..."
         newgame = True
-    save_db.close()
     if newgame:
         rpg_instance = generate(rpg_instance)
     msg = "You begin in the town square. \n"
@@ -195,7 +225,13 @@ def main():
         "to look at your charsheet, Equip to change your equipment, Help " \
         "to enter the help library, or Quit to quit.)"
     print textwrap.fill(msg)
-    rpg_instance.telltown()
+    msg = "To the East is your humble abode and warm bed; " \
+        "to the North, the General Store where various and sundry goods " \
+        "may be purchased; to the West, the Questhall where the mayor " \
+        "makes his office; to the Northwest, the local Shrine to the " \
+        "Unknowable Gods; and to the South lie the gates of the city, " \
+        "leading out to the Dungeon."
+    print textwrap.fill(msg)
     town(rpg_instance)
     
 if __name__ == '__main__':
