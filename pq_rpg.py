@@ -311,15 +311,15 @@ class PQ_RPG(object):
             "which promises Materialism for a single lump sum of 30,000gp."
         print textwrap.fill(msg), "\nChoice# Offering, or Leave"
         choice = get_user_input("Shrine> ", character = self.character, \
-            allow_sheet = True, allow_equip = True, allow_help = True).lower()
+            options = ["leave", "sheet", "equip", "help"]).lower()
         while choice != "leave":
             choice = choice.split()
             if len(choice) < 2 or (choice[0] != "1" and choice[0] != "2"):
                 print "You need to pick both an altar number (1 or 2) " \
                     "and an offering amount."
                 choice = get_user_input("Shrine> ", \
-                    character = self.character, allow_sheet = True, \
-                    allow_equip = True, allow_help = True).lower()
+                    character = self.character, \
+                    options = ["leave", "sheet", "equip", "help"]).lower()
                 continue
             try:
                 offering = int(choice[1])
@@ -327,13 +327,13 @@ class PQ_RPG(object):
                 print "You need to pick both an altar number (1 or 2) and " \
                     "an offering amount."
                 choice = get_user_input("Shrine> ", \
-                    character = self.character, allow_sheet = True, \
-                    allow_equip = True, allow_help = True).lower()
+                    character = self.character, \
+                    options = ["leave", "sheet", "equip", "help"]).lower()
                 continue
             self.offering(choice[0], offering)
             choice = get_user_input("Shrine> ", \
-                character = self.character, allow_sheet = True, \
-                allow_equip = True, allow_help = True).lower()
+                    character = self.character, \
+                    options = ["leave", "sheet", "equip", "help"]).lower()
         print "You leave the shrine and head back into the town square.", '\n'
         
     def offering(self, choice, amount):

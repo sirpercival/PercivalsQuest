@@ -7,6 +7,12 @@ for Percival's Quest RPG
 #  part of Percival's Quest RPG
 
 import json, textwrap, random
+readl = True
+try:
+    import readline
+except ImportError:
+    readl = False
+    
 
 def collapse_stringlist(thelist, sortit = False, addcounts = False):
     """Remove duplicate elements from a list, 
@@ -40,26 +46,6 @@ def atk_roll(attack, defense, attack_adjust = 0, defense_adjust = 0):
             for i in range(0,6)]) + defense_adjust
     return attack_result - defense_result
 
-
-def choose_from_list(prompt, options, rand = False, character = None, \
-    allowed = ["help"]):
-    """Accept user input from a list of options."""
-    allowed = [i.lower() for i in allowed]
-    allow_sheet = "sheet" in allowed
-    allow_help = "help" in allowed
-    allow_equip = "equip" in allowed
-    choice = get_user_input(prompt, character, allow_sheet, \
-        allow_help, allow_equip)
-    while choice.lower() not in [i.lower() for i in options]:
-        if rand and choice.lower() == "random":
-            return random.choice(options)
-        print "Sorry, I didn't understand your choice. Try again?"
-        choice = get_user_input(prompt, character, allow_sheet, \
-            allow_help, allow_equip)
-    for i in options:
-        if i.lower() == choice.lower():
-            return i
-
 def confirm_quit():
     """Do you really want to quit? DO YA, PUNK???"""
     print "Remember that your last save was the last time you rested."
@@ -67,30 +53,65 @@ def confirm_quit():
     if choice.lower() in ["y", "yes", "quit"]:
         quit()
 
-def get_user_input(prompt, character = None, allow_sheet = False, \
-    allow_help = False, allow_equip = False):
+def choose_from_list(prompt, options, rand = False, character = None, \
+    allowed = ["Help"]):
+    """Accept user input from a list of options."""
+    choice = get_user_input(prompt, character, options = options + allowed)
+    while choice.lower() not in [i.lower() for i in options]:
+        if rand and choice.lower() == "random":
+            return random.choice(options)
+        print "Sorry, I didn't understand your choice. Try again?"
+        choice = get_user_input(prompt, character, options = options + allowed)
+    for i in options:
+        if i.lower() == choice.lower():
+            return i
+
+class PQ_Completer(object):
+    """Custom completer for our fabulous program"""
+    def __init__(self, options):
+        self.options = sorted(options)
+
+    def complete(self, text, state):
+        if state == 0:  # on first trigger, build possible matches
+            if text:  # cache matches (entries that start with entered text)
+                self.matches = [s for s in self.options 
+                                    if s and s.startswith(text)]
+            else:  # no text entered, all matches possible
+                self.matches = self.options[:]
+
+        # return match indexed by state
+        try: 
+            return self.matches[state]
+        except IndexError:
+            return None
+
+def get_user_input(prompt, character = None, options = ["Quit"]):
     """Get some info from the user."""
+    if readl:
+        options = options + ["Quit"] if "Quit" not in options else options
+        options = sorted([i.lower() for i in options] + \
+            [i.lower().capitalize() for i in options] + \
+            [i.upper() for i in options])
+        completer = PQ_Completer(options)
+        readline.set_completer(None)   
+        readline.set_completer(completer.complete)
+        readline.parse_and_bind('tab: complete')
+    else:
+        options = [i.lower() for i in options]
+
     user_input = raw_input(color.BOLD + prompt + color.END)
-    if allow_sheet and character and user_input.lower() == "sheet":
+    if "sheet" in options and character and user_input.lower() == "sheet":
         character.tellchar()
-        return get_user_input(prompt, character = character, \
-            allow_sheet = allow_sheet, allow_help = allow_help, \
-            allow_equip = allow_equip)
-    if allow_help and user_input.lower() == "help":
+        return get_user_input(prompt, character = character, options = options)
+    if "help" in options and user_input.lower() == "help":
         pq_help()
-        return get_user_input(prompt, character = character, \
-            allow_sheet = allow_sheet, allow_help = allow_help, \
-            allow_equip = allow_equip)
-    if allow_equip and character and user_input.lower() == "equip":
+        return get_user_input(prompt, character = character, options = options)
+    if "equip" in options and character and user_input.lower() == "equip":
         character.equip()
-        return get_user_input(prompt, character = character, \
-            allow_sheet = allow_sheet, allow_help = allow_help, \
-            allow_equip = allow_equip)
+        return get_user_input(prompt, character = character, options = options)
     if user_input.lower() == "quit":
         confirm_quit()
-        return get_user_input(prompt, character = character, \
-            allow_sheet = allow_sheet, allow_help = allow_help, \
-            allow_equip = allow_equip)
+        return get_user_input(prompt, character = character, options = options)
     return user_input
 
 def pq_help():
@@ -102,7 +123,7 @@ def pq_help():
     topic = choose_from_list("Help> ", help_topics.keys() + ["Exit"])
     while topic != "Exit":
         print color.BOLD + "TOPIC: " + topic.upper() + color.END
-        if topic != "Armor" and topic != "Weapons":
+        if topic not in ["Armor", "Weapons", "Races", "Classes"]:
             print textwrap.fill(help_topics[topic])
         else:
             print help_topics[topic]

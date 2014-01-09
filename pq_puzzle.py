@@ -176,7 +176,7 @@ class PQ_Puzzle(object):
         """Handle guesses of the riddle answer."""
         while self.riddleguess > 0:
             guess = get_user_input("Guess> ", character=self.char, \
-                allow_sheet=True, allow_equip=True, allow_help=True)
+                options = ["sheet", "equip", "help"])
             self.riddleguess -= 1
             #check for a valid guess
             badguess = 0
@@ -214,7 +214,7 @@ class PQ_Puzzle(object):
         """A numeric Mastermind game! Give feedback on the guesses."""
         while self.numguess > 0:
             guess = get_user_input("Guess> ", character=self.char, \
-                allow_sheet=True, allow_equip=True, allow_help=True)
+                options = ["sheet", "equip", "help"])
             self.numguess -= 1
             #check for a valid guess
             badguess = False
