@@ -340,7 +340,7 @@ def pq_spellcraft(user, target):
     if random.random() < trigger_chance and user.skillpoints[0] \
         < user.skillpoints[1]:
         user.huh(-1)
-         targstring = "You recover" if hasattr(user, "gear") else \
+        targstring = "You recover" if hasattr(user, "gear") else \
             "The enemy recovers"
         print targstring + " a skill point!"
     return
