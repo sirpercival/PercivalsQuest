@@ -360,16 +360,51 @@ def pq_spellcraft(user, target):
         print targstring + " a skill point!"
     return
     
+def pq_resilience(user, target):
+    """Passive skill: chance to regain a skill point"""
+    trigger_chance = float(1 + 5 * user.level[1]) / \
+        float(50 + 6 * user.level[1])
+    hp_trig = random.random() < trigger_chance and user.hitpoints[0] \
+        < user.hitpoints[1]
+    sp_trig = random.random() < trigger_chance and user.skillpoints[0] \
+        < user.skillpoints[1]
+    targstring = ("You are ", "") if hasattr(user, "gear") \
+        else ("The enemy is ", "s")
+    effectstring = ""
+    if hp_trig:
+        effectstring += "1 hit point"
+        user.cure(1)
+    if sp_trig:
+        if hp_trig:
+            effectstring += " and "
+        effectstring += "1 skill point"
+        user.huh(-1)
+    print targstring[0] + "feeling very resilient, and recover" + \
+        targstring[1] + " " + effectstring + "!"
+    return
+    
 def pq_stealth(user, target):
     pass #not implemented yet! i'm not sure what to do with this.
+
+def pq_precog(user, target):
+    """Passive skill: Mind vs Mind for 1-round buff to attack and defense"""
+    buff = atk_roll([0, user.stats[4]], [0, target.stats[4]], \
+        user.temp['stats'].get("Mind", 0), \
+        target.temp['stats'].get("Mind", 0))
+    if buff > 0:
+        targstring = "You predict the enemy's actions!" if \
+            hasattr(user, "gear") else "The enemy predicts your actions!"
+        user.temp_bonus(["Attack", "Defense"], buff, 2)
+        print targstring
+    return
     
 def pq_track(user, target):
     """Passive skill: stops opponent from fleeing for rest of combat"""
     trigger_chance = 0.02 * user.level[1]
     if random.random() < trigger_chance and not \
         target.temp['condition'].get("tracked",None):
-        target.temp['condition']["tracked"] = 99
-        targstring = ("You have tracked the enemy!") if \
+        target.temp['condition']["tracked"] = 999
+        targstring = "You have tracked the enemy!" if \
             hasattr(user, "gear") else "The enemy has tracked you!"
         print targstring
     return
@@ -410,7 +445,9 @@ pq_passive_skills = {
     "Bardic Knowledge": pq_bardicknowledge,
     "Bushido": pq_bushido,
     "Grace": pq_grace,
+    "Precognition": pq_precog,
     "Regeneration": pq_regeneration,
+    "Resilience": pq_resilience,
     "Shapechange": pq_shapechange,
     "Spellcraft": pq_spellcraft,
     "Stealth": pq_stealth,
