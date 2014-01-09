@@ -199,12 +199,11 @@ def pq_confusion(user, target):
     return (affect > 0, 0)
     
 def pq_evade(user, target):
-    """Buff self with an Evade (+1dSkill to Defense)"""
+    """Buff self with an Evade (+Skill to Defense)"""
     targstring = "You feel " if hasattr(user, "gear") \
         else "The monster feels "
     print targstring + "more evasive!"
-    buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
-    user.temp_bonus(["Defense"], buff, 4)
+    user.temp_bonus(["Defense"], user.stats[5], 4)
     return (True, 0)
     
 def pq_acidspray(user, target):
@@ -295,11 +294,42 @@ def pq_regeneration(user, target):
     
 def pq_shapechange(user, target):
     """Passive skill: chance to gain 1-round buff every round."""
-    skills = ["Attack", "Defense", "Reflexes", "Fortitude"]
+    stats = ["Attack", "Defense", "Reflexes", "Fortitude"]
     trigger_chance = user.level * 0.02
     if random.random() < trigger_chance:
         buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
-        user.temp_bonus(skills, buff, 2)
+        user.temp_bonus(stats, buff, 2)
+    return
+        
+def pq_bushido(user, target):
+    """Passive skill: chance to gain +1dSkill to defense as a 1-round buff."""
+    trigger_chance = user.level * 0.02
+    if random.random() < trigger_chance:
+        buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
+        user.temp_bonus(["Defense"], buff, 2)
+    return
+
+def pq_grace(user, target):
+    """Passive skill: chance to gain +1dSkill to Ref, Fort, 
+    Mind as a 1-round buff."""
+    stats = ["Reflexes", "Fortitude", "Mind"]
+    trigger_chance = user.level * 0.02
+    if random.random() < trigger_chance:
+        buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
+        user.temp_bonus(stats, buff, 2)
+    return
+
+def pq_spellcraft(user, target):
+    pass #not implemented yet!
+    
+def pq_stealth(user, target):
+    pass #not implemented yet!
+    
+def pq_track(user, target):
+    pass #not implemented yet!
+    
+def pq_unarmed(user, target):
+    pass #not implemented yet!
 
 pq_skill_library = {
     "Acidspray": pq_acidspray,
@@ -323,4 +353,17 @@ pq_skill_library = {
     "Smite": pq_smite,
     "Telekinesis": pq_telekinesis,
     "Trip": pq_trip
+    }
+    
+pq_passive_skills = {
+    "Bardic Knowledge": pq_bardicknowledge,
+    "Bushido": pq_bushido,
+    "Grace": pq_grace,
+    "Regeneration": pq_regeneration,
+    "Shapechange": pq_shapechange,
+    "Spellcraft": pq_spellcraft,
+    "Stealth": pq_stealth,
+    "Track": pq_track,
+    "Turning": pq_turning,
+    "Unarmed Strike": pq_unarmed
     }
