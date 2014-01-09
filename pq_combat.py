@@ -162,14 +162,12 @@ class PQ_Combat(object):
         
     def runaway(self, who, chance = 0.5):
         """Check Flee chance"""
-        condition = ''
-        if "entangled" in who.temp['condition']:
-            condition = "entangled"
-        if "tripped" in who.temp['condition']:
-            condition = "tripped"
+        condition = [x for x in who.temp['condition'].keys() \
+            if x in ["entangled", "tripped", "tracked"]]
         if condition:
-            targstring = "You are " if who == self.char else "The monster is "
-            print targstring + condition + ", and cannot flee!"
+            targstring = "You are " if who == self.char \
+                else "The monster is "
+            print targstring + condition[0] + ", and cannot flee!"
             return
         if random.random() < chance:
             if who == self.char:

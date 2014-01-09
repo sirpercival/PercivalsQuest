@@ -270,7 +270,7 @@ def pq_burn(user, target):
 
 def pq_bardicknowledge(user, target):
     """Passive skill: Learn information about the target"""
-    trigger_chance = user.level * 0.02
+    trigger_chance = user.level[1] * 0.02
     if random.random() < trigger_chance:
         statstring = sum([[pq_stats_short[i], str(target.stats[i])] \
             for i in range(6)], [])
@@ -281,55 +281,90 @@ def pq_bardicknowledge(user, target):
 def pq_turning(user, target):
     """Passive skill: chance to apply Turned condition, 
     which prevents attack"""
-    trigger_chance = float(1 + 3 * user.level) / float(50 + 4 * user.level)
+    trigger_chance = float(1 + 3 * user.level[1]) / \
+        float(50 + 4 * user.level[1])
     if random.random() < trigger_chance:
         target.temp['condition']["turned"] = 2
-        print "Enemy is turned!"
+        targstring = "Enemy is " if hasattr(user, "gear") else "You are "
+        print targstring + "turned!"
     return
 
 def pq_regeneration(user, target):
     """Passive skill: regain lvl hp each round."""
     user.cure(user.level[1])
+    targstring = "You regenerate " if hasattr(user, "gear") else \
+        "Enemy regenerates "
+    print targstring + str(user.level[1]) + " hitpoints!"
     return
     
 def pq_shapechange(user, target):
     """Passive skill: chance to gain 1-round buff every round."""
     stats = ["Attack", "Defense", "Reflexes", "Fortitude"]
-    trigger_chance = user.level * 0.02
+    trigger_chance = user.level[1] * 0.02
     if random.random() < trigger_chance:
+        targstring = "You change shape!" if hasattr(user, "gear") else \
+            "The enemy changes shape!"
+        print targstring
         buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
         user.temp_bonus(stats, buff, 2)
     return
         
 def pq_bushido(user, target):
-    """Passive skill: chance to gain +1dSkill to defense as a 1-round buff."""
-    trigger_chance = user.level * 0.02
-    if random.random() < trigger_chance:
-        buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
-        user.temp_bonus(["Defense"], buff, 2)
+    """Passive skill: chance to remove a random condition."""
+    trigger_chance = user.level[1] * 0.02
+    if random.random() < trigger_chance and user.temp['condition']:
+        condition_remove = random.choice(user.temp['condition'].keys())
+        targstring = "You shrug" if hasattr(user, "gear") else \
+            "The enemy throws"
+        print targstring + " off the " + condition_remove + "condition!"
+        del user.temp['condition'][condition_remove]
     return
 
 def pq_grace(user, target):
     """Passive skill: chance to gain +1dSkill to Ref, Fort, 
-    Mind as a 1-round buff."""
+    Mind as a 2-round buff."""
     stats = ["Reflexes", "Fortitude", "Mind"]
-    trigger_chance = user.level * 0.02
+    trigger_chance = user.level[1] * 0.02
     if random.random() < trigger_chance:
+         targstring = "You glow" if hasattr(user, "gear") else \
+            "The enemy glows"
+        print targstring + " with divine impetus!"
         buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
-        user.temp_bonus(stats, buff, 2)
+        user.temp_bonus(stats, buff, 4)
     return
 
 def pq_spellcraft(user, target):
-    pass #not implemented yet!
+    """Passive skill: chance to regain a skill point"""
+    trigger_chance = float(1 + 7 * user.level[1]) / \
+        float(50 + 8 * user.level[1])
+    if random.random() < trigger_chance and user.skillpoints[0] \
+        < user.skillpoints[1]:
+        user.huh(-1)
+         targstring = "You recover" if hasattr(user, "gear") else \
+            "The enemy recovers"
+        print targstring + " a skill point!"
+    return
     
 def pq_stealth(user, target):
-    pass #not implemented yet!
+    pass #not implemented yet! i'm not sure what to do with this.
     
 def pq_track(user, target):
-    pass #not implemented yet!
+    """Passive skill: stops opponent from fleeing for rest of combat"""
+    trigger_chance = 0.02 * user.level[1]
+    if random.random() < trigger_chance and not \
+        target.temp['condition'].get("tracked",None):
+        target.temp['condition']["tracked"] = 99
+        targstring = ("You have tracked the enemy!") if \
+            hasattr(user, "gear") else "The enemy has tracked you!"
+        print targstring
+    return
     
 def pq_unarmed(user, target):
-    pass #not implemented yet!
+    """Passive skill: chance to gain +1dSkill as a buff to Attack"""
+    trigger_chance = 0.02 * user.level[1]
+    if random.random() < trigger_chance:
+        buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
+        user.temp_bonus(["Attack"], buff, 4)
 
 pq_skill_library = {
     "Acidspray": pq_acidspray,
