@@ -255,7 +255,7 @@ class PQ_Character(object):
         """Get xp and gold for completing a quest; 
         also, reset quest item slot"""
         self.loot['quest'] = ''
-        self.level[1] += experience
+        self.level[0] += experience
         self.loot['gp'] += gold
         self.queststatus = "active"
     
