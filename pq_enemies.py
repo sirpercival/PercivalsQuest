@@ -63,7 +63,7 @@ class PQ_Enemy(object):
         self.level = [lvl, lvl]
         color = random.choice([random.choice(pq_dragonskill.keys()) \
             for i in range(0, 6)])
-        self.name = dragon_namegen(2, 6)[0] + ' the ' + color + ' Dragon'
+        self.name = dragon_namegen(2, 6) + ' the ' + color + ' Dragon'
         for i in range(0, 6):
             statroll = random.choice([random.randint(1, 6) \
                 for j in range(0, 6)])
