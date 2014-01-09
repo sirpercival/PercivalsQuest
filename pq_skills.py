@@ -266,6 +266,20 @@ def pq_burn(user, target):
         target.temp['condition']["burning"] = 4
     return (hit > 0, hit)
     
+def pq_leech(user, target):
+    """Perform a Leech -- a single attack which 
+    cures for half the damage it deals, up to Skill"""
+    hit = atk_roll(user.combat['atk'], [0, target.stats[3]], \
+        user.temp['stats'].get("Attack", 0), \
+        target.temp['stats'].get("Fortitude", 0))
+    if hit > 0:
+        cure = max([hit/2, 1])
+        targstring = "You drain " if hasattr(user, "gear") \
+            else "The monster drains "
+        print targstring + str(cure) + " hit points!"
+        user.cure(cure)
+    return (hit > 0, hit)
+    
 #TIME FOR THE PASSIVE SKILLS!
 
 def pq_bardicknowledge(user, target):
@@ -291,10 +305,11 @@ def pq_turning(user, target):
 
 def pq_regeneration(user, target):
     """Passive skill: regain lvl hp each round."""
-    user.cure(user.level[1])
+    regen = max([user.level[1]/2, 1])
+    user.cure(regen)
     targstring = "You regenerate " if hasattr(user, "gear") else \
         "Enemy regenerates "
-    print targstring + str(user.level[1]) + " hitpoints!"
+    print targstring + str(regen) + " hitpoints!"
     return
     
 def pq_shapechange(user, target):
@@ -380,6 +395,7 @@ pq_skill_library = {
     "Evade": pq_evade,
     "Fear": pq_fear,
     "Flameblast": pq_burn,
+    "Leech": pq_leech,
     "Missile": pq_missile,
     "Petrify": pq_petrify,
     "Poison": pq_poison,
