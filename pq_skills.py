@@ -133,7 +133,7 @@ def pq_charm(user, target):
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
         print targstring + "charmed!"
-        target['condition']["charmed"] = 4
+        target.temp['condition']["charmed"] = 4
         return (True, 0)
     return (False, 0)
 
@@ -320,7 +320,7 @@ def pq_shapechange(user, target):
         targstring = "You change shape!" if hasattr(user, "gear") else \
             "The enemy changes shape!"
         print targstring
-        buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
+        buff = random.randint(1, user.level[1]) if user.level[1] > 1 else 1
         user.temp_bonus(stats, buff, 2)
     return
         
@@ -336,7 +336,7 @@ def pq_bushido(user, target):
     return
 
 def pq_grace(user, target):
-    """Passive skill: chance to gain +1dSkill to Ref, Fort, 
+    """Passive skill: chance to gain +1dLevel to Ref, Fort, 
     Mind as a 2-round buff."""
     stats = ["Reflexes", "Fortitude", "Mind"]
     trigger_chance = user.level[1] * 0.02
@@ -344,24 +344,16 @@ def pq_grace(user, target):
         targstring = "You glow" if hasattr(user, "gear") else \
             "The enemy glows"
         print targstring + " with divine impetus!"
-        buff = random.randint(1, user.stats[5]) if user.stats[5] > 1 else 1
+        buff = random.randint(1, user.level[1]) if user.level[1] > 1 else 1
         user.temp_bonus(stats, buff, 4)
     return
 
 def pq_spellcraft(user, target):
-    """Passive skill: chance to regain a skill point"""
-    trigger_chance = float(1 + 7 * user.level[1]) / \
-        float(50 + 8 * user.level[1])
-    if random.random() < trigger_chance and user.skillpoints[0] \
-        < user.skillpoints[1]:
-        user.huh(-1)
-        targstring = "You recover" if hasattr(user, "gear") else \
-            "The enemy recovers"
-        print targstring + " a skill point!"
+    pass #not implemented yet!
     return
     
 def pq_resilience(user, target):
-    """Passive skill: chance to regain a skill point"""
+    """Passive skill: chance to regain a skill and/or point"""
     trigger_chance = float(1 + 5 * user.level[1]) / \
         float(50 + 6 * user.level[1])
     hp_trig = random.random() < trigger_chance and user.hitpoints[0] \

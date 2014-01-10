@@ -118,16 +118,18 @@ def pq_help():
     """Open the help prompt and, y'know, help."""
     with open('data/pq_help_strings.json') as f:
         help_topics = json.load(f)
-    print "Help topics: " + ", ".join(sorted(help_topics.keys())) + \
-        "; Exit to return to game."
-    topic = choose_from_list("Help> ", help_topics.keys() + ["Exit"])
+    print textwrap.fill("Help topics: " + ", ".join(sorted(help_topics.keys())) + \
+        "; Exit to return to game.")
+    topic = choose_from_list("Help> ", help_topics.keys() + ["Exit"], \
+        allowed = [])
     while topic != "Exit":
         print color.BOLD + "TOPIC: " + topic.upper() + color.END
-        if topic not in ["Armor", "Weapons", "Races", "Classes"]:
+        if topic not in ["Armor", "Weapons", "Races", "Classes", "Feats"]:
             print textwrap.fill(help_topics[topic])
         else:
             print help_topics[topic]
-        topic = choose_from_list("Help> ", help_topics.keys() + ["Exit"])
+        topic = choose_from_list("Help> ", help_topics.keys() + ["Exit"], \
+            allowed = [])
 
 class color:
     """Color ANSI codes"""
