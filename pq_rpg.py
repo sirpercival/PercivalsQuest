@@ -13,7 +13,7 @@ from pq_combat import PQ_Combat
 from pq_puzzle import PQ_Puzzle
 from pq_equipment import pq_treasuregen, pq_item_worth, pq_gear, pq_magic
 from pq_utilities import choose_from_list, color, get_user_input, \
-    collapse_stringlist
+    collapse_stringlist, save
 from pq_namegen import sandgen, godgen
 
 def display_itemlist(itemlist, sell = False):
@@ -336,6 +336,7 @@ class PQ_RPG(object):
                     options = ["leave", "sheet", "equip", "help"]).lower()
                 continue
             self.offering(choice[0], offering)
+            save(rpg)
             choice = get_user_input("Shrine> ", \
                     character = self.character, \
                     options = ["leave", "sheet", "equip", "help"]).lower()

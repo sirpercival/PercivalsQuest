@@ -6,7 +6,7 @@ for Percival's Quest RPG
 #  pq_utilities.py
 #  part of Percival's Quest RPG
 
-import json, textwrap, random
+import json, textwrap, random, shelve, os
 readl = True
 try:
     import readline
@@ -143,3 +143,24 @@ class color:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
+    
+
+prefix = ""
+from platform import system
+if system() in ['Linux', 'Darwin', 'Unix']:
+    prefix = "."
+savefile = os.path.expanduser("~/"+prefix+"pq_saves")
+
+def save(rpg):
+    """Save it, baby!"""
+    savedb = shelve.open(savefile)
+    savedb[rpg.player_name] = rpg
+    savedb.close()
+    
+def load(rpg):
+    """Load it, baby!"""
+    savedb = shelve.open(savefile)
+    if rpg.player_name not in savedb:
+        return None
+    else:
+        return savedb[rpg.player_name]

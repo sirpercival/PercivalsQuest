@@ -27,7 +27,7 @@ o======o
 """
 
 import pq_rpg as pqr
-from pq_utilities import color, choose_from_list, confirm_quit
+from pq_utilities import color, choose_from_list, confirm_quit, save, load
 import shelve, os, textwrap
 from colorama import init
 
@@ -123,30 +123,6 @@ def dungeon(rpg):
                 deadchar(rpg)
             else:
                 continue
-
-def save(rpg):
-    """Save it, baby!"""
-    prefix = ""
-    from platform import system
-    import os
-    if system() in ['Linux', 'Darwin', 'Unix']:
-        prefix = "."
-    savedb = shelve.open(os.path.expanduser("~/"+prefix+"pq_saves"))
-    savedb[rpg.player_name] = rpg
-    savedb.close()
-    
-def load(rpg):
-    """Load it, baby!"""
-    prefix = ""
-    from platform import system
-    import os
-    if system() in ['Linux', 'Darwin', 'Unix']:
-        prefix = "."
-    savedb = shelve.open(os.path.expanduser("~/"+prefix+"pq_saves"))
-    if rpg.player_name not in savedb:
-        return None
-    else:
-        return savedb[rpg.player_name]
 
 def deadchar(rpg):
     """Deal with character death"""
