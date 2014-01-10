@@ -18,16 +18,21 @@ from pq_namegen import sandgen, godgen
 
 def display_itemlist(itemlist, sell = False):
     """Format a list of items for display in the shop."""
-    items = collapse_stringlist(itemlist, sortit = True, addcounts = True)
-    for j, i in enumerate(items):
+    unique_items = collapse_stringlist(itemlist, sortit = True, \
+        addcounts = False)
+    items_with_counts = collapse_stringlist(itemlist, sortit = True, \
+        addcounts = True)
+    items = []
+    for j, i in enumerate(unique_items):
         price = pq_item_worth(i)
         if sell:
             price = max([price / 2, 1])
         if i.lower() in [x.lower() for x in pq_magic['ring'].keys()]:
-            items[j] = str(j + 1) + ". Ring of " + i + \
-                " (" + str(price) + ")"
+            items.append(str(j + 1) + ". Ring of " + items_with_counts[j] + \
+                " (" + str(price) + ")")
         else:
-            items[j] = str(j + 1) + ". " + i + " (" + str(price) + ")"
+            items.append(str(j + 1) + ". " + items_with_counts[j] + \
+                " (" + str(price) + ")")
     return items
 
 class PQ_RPG(object):
