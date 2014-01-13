@@ -336,7 +336,7 @@ class PQ_RPG(object):
                     options = ["leave", "sheet", "equip", "help"]).lower()
                 continue
             self.offering(choice[0], offering)
-            save(rpg)
+            save(self)
             choice = get_user_input("Shrine> ", \
                     character = self.character, \
                     options = ["leave", "sheet", "equip", "help"]).lower()
