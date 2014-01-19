@@ -13,7 +13,13 @@ from pq_namegen import web_namegen
 from pq_utilities import choose_from_list, collapse_stringlist, color
 from pq_equipment import pq_gear, pq_magic, pq_item_type, \
     pq_item_rating, pq_item_worth
-import random, textwrap
+import random, textwrap, json
+
+with open('data/pq_classes.json') as f:
+    pq_classes = json.load(f)
+
+with open('data/pq_races.json') as f:
+    pq_races = json.load(f)
 
 pq_feats = {'PowerAttack':0, 'StoutDefense':1, 'LightningReflexes':2, 
     'Toughness':3, 'IronWill':4, 'Prodigy':5, 'ImprovedInitiative':-1}
@@ -25,7 +31,7 @@ class PQ_Character(object):
     def __init__(self):
         """Initialize Character instance"""
         self.name = ["", ""] #character, player
-        self.level = [1, 0] #exp, level
+        self.level = [0, 1] #exp, level
         self.hitpoints = [1, 1] #current, max
         self.skillpoints = [1, 1] #current, max
         self.raceclass = ["", ""] #race, class
@@ -39,23 +45,16 @@ class PQ_Character(object):
         self.temp = {'stats':{}, 'statturns':{}, 'condition':{}}
         self.dead = False
         self.queststatus = "inactive"
+        self.charsheetstring = []
     
     def chargen(self, player):
         """
         Generate a new character using (possibly random) race, class, 
         and feat choices.
         """
-        import json
         print textwrap.fill("It's time to generate a character! At any " \
             "of the prompts below, enter 'random' (no quotes) to use " \
             "a random choice.")
-        self.name = [color.GREEN + web_namegen(5, 12, 2).replace('\n', ' ') \
-            + color.END, player]
-        self.level = [0, 1]
-        with open('data/pq_classes.json') as f:
-            pq_classes = json.load(f)
-        with open('data/pq_races.json') as f:
-            pq_races = json.load(f)
         print "Available races: " + ", ".join(sorted(pq_races.keys()))
         race = choose_from_list("Race> ", pq_races.keys(), rand=True, \
             character=self, allowed=['sheet', 'help'])
@@ -69,6 +68,12 @@ class PQ_Character(object):
             feat = choose_from_list("Feat> ", pq_feats.keys(), rand=True, \
                 character=self, allowed=['sheet', 'help'])
             feats.append(feat)
+        self.chargenerate(race, clas, feats, player)
+        self.tellchar()
+        
+    def chargenerate(self, race, clas, feats, player):
+        self.name = [web_namegen(5, 12, 2).replace('\n', ' '), player]
+        self.level = [0, 1]
         self.raceclass = [race, clas]
         self.loot["gp"] = 0
         for i in range(0, 6):
@@ -98,12 +103,11 @@ class PQ_Character(object):
         self.combat['dfn'] = [self.gear['armor']['rating'], self.stats[1]]
         self.skill = []
         self.skill.append(pq_classes[self.raceclass[1]]['skill'])
-        self.tellchar()
         
     def tellchar(self):
         """Print out the character sheet"""
-        print color.BOLD + self.name[0] + color.END + ' (Player: ' + \
-            self.name[1] + ')'
+        print color.BOLD + color.GREEN + self.name[0] + color.END + \
+            ' (Player: ' + self.name[1] + ')'
         print color.BOLD + ' '.join([self.raceclass[0].capitalize(), \
             self.raceclass[1].capitalize(), str(self.level[1])]) + color.END
         statstring = sum([[color.BOLD + pq_stats_short[i] + color.END, \
@@ -146,6 +150,56 @@ class PQ_Character(object):
             lootbag = ', '.join(lootbag)
         print textwrap.fill(str(self.loot['gp']) + \
             ' gp; loot: ' + lootbag), '\n'
+            
+    def sheetstring(self):
+        """Return a string containing the character sheet"""
+        self.charsheetstring = []
+        self.charsheetstring.append(color.BOLD + color.GREEN + self.name[0] + \
+            color.END + ' (Player: ' + self.name[1] + ')')
+        self.charsheetstring.append(color.BOLD + ' '.join([self.raceclass[ \
+            0].capitalize(), self.raceclass[1].capitalize(), \
+            str(self.level[1])]) + color.END)
+        statstring = sum([[color.BOLD + pq_stats_short[i] + color.END, \
+            str(self.stats[i])] for i in range(0,6)], [])
+        feats = collapse_stringlist(self.feats, True, True)
+        feats = ', '.join(sorted(feats))
+        self.charsheetstring.append('; '.join([' '.join(statstring), color.BOLD + \
+            'hp ' +  color.END + str(self.hitpoints[0]) + '/' + \
+            str(self.hitpoints[1]), color.BOLD + 'sp ' + color.END + \
+            str(self.skillpoints[0]) + '/' + str(self.skillpoints[1]), \
+            color.BOLD + 'exp ' + color.END + str(self.level[0]) + '/' + \
+            str(self.level[1]*10)]))
+        self.charsheetstring.append(textwrap.fill(feats))
+        if not self.gear['armor']['name']:
+            armor = color.BOLD + 'Armor:' + color.END + ' None (0)'
+        else:
+            armor = color.BOLD + 'Armor:' + color.END + ' ' + \
+                self.gear['armor']['name'] + ' (' + \
+                str(self.gear['armor']['rating']) + ')'
+        if not self.gear['weapon']['name']:
+            weapon = color.BOLD + 'Weapon:' + color.END + ' None (-1)'
+        else:
+            weapon = color.BOLD + 'Weapon:' + color.END + ' '+  \
+                self.gear['weapon']['name'] + ' (' + \
+                str(self.gear['weapon']['rating']) + ')'
+        if not self.gear['ring']:
+            ring = color.BOLD + 'Ring:' + color.END + ' None'
+        else:
+            ring = color.BOLD + 'Ring:' + color.END + ' ' + self.gear['ring']
+        self.charsheetstring.append('; '.join([color.BOLD + 'Skills: ' + 
+            color.END + ', '.join(self.skill), armor, weapon, ring]))
+        lootbag = collapse_stringlist(self.loot['items'], True, True)
+        for i, f in enumerate(lootbag):
+            for l in f.split():
+                if l.lower() in [x.lower() for x in pq_magic['ring'].keys()]:
+                    lootbag[i] = "Ring of " + lootbag[i]
+        if not lootbag:
+            lootbag = 'None'
+        else:
+            lootbag = ', '.join(lootbag)
+        self.charsheetstring.append(textwrap.fill(str(self.loot['gp']) + \
+            ' gp; loot: ' + lootbag))
+        return self.charsheetstring
         
     def levelup(self):
         """Increasing level, including the feat choice 
@@ -225,10 +279,24 @@ class PQ_Character(object):
             addcounts=True)))
         equipment = choose_from_list("Equip> ", lootbag_basic, rand=False, \
             character=self, allowed=['sheet', 'help'])
+        oldequip = self.changequip(equipment)
+        print equipment + " equipped!"
+        if oldequip:
+            print oldequip + " unequipped!"
+        return
+    
+    def changequip(self, equipment):
         equipment = equipment.replace('Ring of ', '')
+        if equipment not in self.loot['items']:
+            print equipment, self.loot['items']
+            return
         itemtype = pq_item_type(equipment)
         oldequip = ''
         if itemtype[0] == "ring":
+            for i in pq_magic['ring'].keys():
+                if equipment.lower() == i.lower():
+                    equipment = i
+                    break
             if self.gear['ring']:
                 self.skill.remove(pq_magic['ring'][self.gear['ring']])
                 self.loot['items'].append(self.gear['ring'])
@@ -246,10 +314,7 @@ class PQ_Character(object):
             self.loot['items'].remove(equipment)
         self.combat['atk'] = [self.gear['weapon']['rating'], self.stats[0]]
         self.combat['dfn'] = [self.gear['armor']['rating'], self.stats[1]]
-        print equipment + " equipped!"
-        if oldequip:
-            print oldequip + " unequipped!"
-        return
+        return oldequip
             
     def complete_quest(self, experience, gold):
         """Get xp and gold for completing a quest; 

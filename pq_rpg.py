@@ -262,13 +262,13 @@ class PQ_RPG(object):
         print textwrap.fill(msg2)
         print "Buy Item# [Amount], Sell Item# [Amount], or Leave."
         buylist = [" ".join(["buy", str(i), str(j)]) for i in range(1, \
-            len(inventory) + 1) for j in range(self.store.count( \
-            inventory_basic[i - 1]))] + ["buy " + str(i) for i \
-            in range(len(inventory) + 1)]
+            len(inventory) + 1) for j in range(1, self.store.count( \
+            inventory_basic[i - 1]) + 1)] + ["buy " + str(i) for i \
+            in range(1, len(inventory) + 1)]
         sellist = [" ".join(["sell", str(i), str(j)]) for i in \
-            range(1, len(lootbag) + 1) for j in range(self.character.loot[\
+            range(1, len(lootbag) + 1) for j in range(1, self.character.loot[\
             'items'].count(lootbag_basic[i - 1]) + 1)] + \
-            ["sell " + str(i) for i in range(len(lootbag) + 1)]
+            ["sell " + str(i) for i in range(1, len(lootbag) + 1)]
         choice = choose_from_list("Shop> ", buylist + sellist + ["leave"], \
             rand=False, character=self.character, allowed=['sheet', 'help'])
         if choice == "leave":
