@@ -31,8 +31,12 @@ class PQ_Enemy(object):
         self.skillcounter = 1
         self.flee = True
         
-    def gen(self, lvl):
+    def gen(self, lev):
         """Generate the monster based on dungeon level."""
+        if lev < 2:
+            lvl = random.choice([lev]*4 + [lev+1])
+        else:
+            lvl = random.choice([lev-1] + [lev]*3 + [lev+1])
         if lvl >= 10: #if we're at level 10, face Dragons!
             self.dragongen(lvl)
         else:

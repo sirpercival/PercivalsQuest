@@ -7,7 +7,7 @@ for managing... y'know... combat.
 #  part of Percival's Quest RPG
 
 from pq_enemies import PQ_Enemy, pq_dragonskill
-from pq_utilities import choose_from_list, atk_roll
+from pq_utilities import choose_from_list, atk_roll, send_to_console
 from pq_skills import pq_skill_library as pqsl
 #from pq_equipment import *
 import random, textwrap
@@ -56,12 +56,12 @@ class PQ_Combat(object):
         """Handle if somebody takes damage."""
         target.ouch(dmg)
         if target == self.char:
-            print "Ouch! You're bleeding, maybe a lot. You take " + str(dmg) \
+            send_to_console("Ouch! You're bleeding, maybe a lot. You take " + str(dmg) \
                 + " damage, and have "+ str(target.hitpoints[0]) + \
-                " hit points remaining."
+                " hit points remaining.")
         else:
-            print "A hit! A very palpable hit! You deal " + str(dmg) + \
-                " damage."
+            send_to_console("A hit! A very palpable hit! You deal " + str(dmg) + \
+                " damage.")
         if target.hitpoints[0] <= 0:
             self.death(target)
             return True
@@ -70,15 +70,15 @@ class PQ_Combat(object):
     def death(self, target):
         """Handle if somebody dies"""
         if target == self.char:
-            print 'Sorry, '+self.char.name[1]+', you have died. You can load ' \
-                'from your last save, quit, or make a new character.'
+            send_to_console('Sorry, '+self.char.name[1]+', you have died. You can load ' \
+                'from your last save, quit, or make a new character.')
             for i in self.char.temp:
                 self.char.temp[i] = {}
             self.char.dead = True
             self.done = True
             return
         if target == self.enemy:
-            print 'You have defeated the ' + self.enemy.name + '!'
+            send_to_console('You have defeated the ' + self.enemy.name + '!')
             self.win_combat()
             return
         
@@ -86,7 +86,7 @@ class PQ_Combat(object):
         """Just a simple attack, Attack vs Defense. Basic, lovely."""
         if "charmed" in user.temp['condition']:
             targstring = "You are " if user == self.char else "The monster is "
-            print targstring + "charmed, and cannot attack!"
+            send_to_console(targstring + "charmed, and cannot attack!")
             return
         hit = atk_roll(user.combat['atk'], target.combat['dfn'], \
             user.temp['stats'].get("Attack", 0), \
@@ -95,20 +95,20 @@ class PQ_Combat(object):
             self.be_hit(target, hit)
             return
         else:
-            print "The attack is unsuccessful."
+            send_to_console("The attack is unsuccessful.")
             return
             
     def use_skill(self, skill, user, target):
         """Parse the different skill options."""
         if skill not in user.skill:
-            print "You don't have that skill..."
+            send_to_console("You don't have that skill...")
             return
         if user.skillpoints[0] == 0:
-            print "Not enough skill points remaining to use that skill..."
+            send_to_console("Not enough skill points remaining to use that skill...")
             return
         if "charmed" in user.temp['condition']:
             targstring = "You are " if user == self.char else "The monster is "
-            print targstring + "charmed, and cannot use skills!"
+            send_to_console(targstring + "charmed, and cannot use skills!")
             return
         user.skillpoints[0] -= 1
         
@@ -116,7 +116,7 @@ class PQ_Combat(object):
         if skill == 'Flee': #escape from combat
             targstring = "You are " if hasattr(user, "gear") \
                 else "The monster is "
-            print targstring+"running away!"
+            send_to_console(targstring+"running away!")
             self.runaway(user, 1.)
             self.done = True
             return
@@ -127,7 +127,7 @@ class PQ_Combat(object):
             return 
         elif not hit[0]:
             targstring = "you." if hasattr(target, "gear") else "the enemy."
-            print "The " + skill + " failed to affect " + targstring
+            send_to_console("The " + skill + " failed to affect " + targstring)
             return
 
     def win_combat(self):
@@ -135,7 +135,7 @@ class PQ_Combat(object):
         the player wins the combat."""
         self.char.defeat_enemy(self.enemy.level[1], self.enemy.treasure)
         exp = self.enemy.level[1]
-        print 'You receive ' + str(exp) + ' experience.'
+        send_to_console('You receive ' + str(exp) + ' experience.')
         treasure = self.enemy.treasure
         msg = "In the monster's pockets, you find: "
         loot = []
@@ -154,7 +154,7 @@ class PQ_Combat(object):
             loot = "Nothing!"
         else:
             loot = ', '.join(loot) + '.'
-        print msg + loot
+        send_to_console(msg + loot)
         if self.char.level[0] >= self.char.level[1] * 10:
             self.char.levelup()
         self.done = True
@@ -167,22 +167,22 @@ class PQ_Combat(object):
         if condition:
             targstring = "You are " if who == self.char \
                 else "The monster is "
-            print targstring + condition[0] + ", and cannot flee!"
+            send_to_console(targstring + condition[0] + ", and cannot flee!")
             return
         if random.random() < chance:
             if who == self.char:
-                print "You successfully exercise your valor, " \
-                    "vis a vis discretion."
+                send_to_console("You successfully exercise your valor, " \
+                    "vis a vis discretion.")
             else:
-                print "Your enemy turns tail and books it back " \
-                    "into the dungeon."
+                send_to_console("Your enemy turns tail and books it back " \
+                    "into the dungeon.")
             self.done = True
             return True
         else:
             if who == self.char:
-                print "You try to run, but the enemy boxes you in."
+                send_to_console("You try to run, but the enemy boxes you in.")
             else:
-                print "You prevent your enemy from skedaddling."
+                send_to_console("You prevent your enemy from skedaddling.")
             return False
     
     def pc_turn(self):
@@ -194,7 +194,7 @@ class PQ_Combat(object):
         else:
             msg = "You are out of skill points! Attack, Run Away, or Equip?"
             available = ["Attack", "Run Away", "Equip"]
-        print textwrap.fill(msg)
+        send_to_console(textwrap.fill(msg))
         action = choose_from_list("Action> ", available, rand=False,
             character=self.char, allowed=['sheet', 'help'])
         if action == "Attack":
@@ -231,11 +231,11 @@ class PQ_Combat(object):
             avail_skills.remove('Poison')
             skills_ok.append(self.enemy.skill in avail_skills)
         if sum(skills_ok) and skillcheck1:
-            print "The enemy uses "+self.enemy.skill+"!"
+            send_to_console("The enemy uses "+self.enemy.skill+"!")
             self.enemy.reset_skillcounter()
             self.use_skill(self.enemy.skill, self.enemy, self.char)
         else:
-            print "It tries to cause you bodily harm!"
+            send_to_console("It tries to cause you bodily harm!")
             self.attack_enemy(self.enemy, self.char)
     
     def advance_turn(self):

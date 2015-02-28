@@ -27,7 +27,8 @@ o======o
 """
 
 import pq_rpg as pqr
-from pq_utilities import color, choose_from_list, confirm_quit, save, load
+from pq_utilities import color, choose_from_list, confirm_quit, save, load, \
+    get_user_input, send_to_console
 import shelve, os, textwrap
 from colorama import init
 
@@ -37,34 +38,34 @@ def town(rpg):
     """Maintain interactions with the town of North Granby."""
     while True:
         if rpg.character.dead:
-            print "You are dead!"
+            send_to_console("You are dead!")
             deadchar(rpg)
             break
-        print "Where would you like to go?\n", "Options: Home, " \
+        send_to_console("Where would you like to go?\n"+"Options: Home, " \
             "Questhall, Shop, Shrine, or Dungeon [Level#] (max "+ \
-            str(rpg.maxdungeonlevel)+")"
+            str(rpg.maxdungeonlevel)+")")
         destinations = ["Dungeon", "Home", "Questhall", "Quest", \
             "Shop", "Shrine"] + ["Dungeon "+str(i) for i in \
             range(1, rpg.maxdungeonlevel+1)]
         goto = choose_from_list("Town> ", destinations, rand=False,
             character=rpg.character, allowed=["sheet","help","equip"])
         if goto == "Home":
-            print "You hit the sack. Once you've annoyed all " \
+            send_to_console("You hit the sack. Once you've annoyed all " \
                 "the bedbugs with your ineffectual fists, "\
-                "you lay down and sleep."
+                "you lay down and sleep.")
             rpg.character.sleep()
             save(rpg)
             continue
         elif goto in ["Questhall", "Quest"]:
-            print "You head to the Questhall."
+            send_to_console("You head to the Questhall.")
             rpg.questhall()
             continue
         elif goto == "Shop":
-            print "You head into the shop."
+            send_to_console("You head into the shop.")
             rpg.visit_shop()
             continue
         elif goto == "Shrine":
-            print "You head into the Shrine."
+            send_to_console("You head into the Shrine.")
             rpg.visit_shrine()
             continue
         else:
@@ -74,7 +75,7 @@ def town(rpg):
                 rpg.dungeonlevel = 1
             else:
                 rpg.dungeonlevel = int(goto[1])
-            print "You head into the Dungeon, level "+str(rpg.dungeonlevel)+"."
+            send_to_console("You head into the Dungeon, level "+str(rpg.dungeonlevel)+".")
             dungeon(rpg)
             continue
 
@@ -86,33 +87,33 @@ def dungeon(rpg):
             return
         actions = ["Explore","Leave"] if rpg.whereareyou == "start" \
             else ["Explore","Backtrack"]
-        print "You're in the dank dark dungeon. What do you want to do?", \
-            '\n', "Options: "+", ".join(actions)
+        send_to_console("You're in the dank dark dungeon. What do you want to do?\n"+\
+            "Options: "+", ".join(actions))
         dothis = choose_from_list("Dungeon> ", actions, rand=False,
             character=rpg.character, allowed=["sheet","help","equip"])
         if dothis == "Leave":
             if rpg.whereareyou != "start":
-                print "You can't leave from here; you have to backtrack " \
-                    "to the start of the level."
+                send_to_console("You can't leave from here; you have to backtrack " \
+                    "to the start of the level.")
                 dothis = ""
                 continue
             else:
                 rpg.destination("town")
-                print "You head back to town."
+                send_to_console("You head back to town.")
                 continue
         elif dothis == "Backtrack":
             if rpg.whereareyou == "start":
-                print "You're already at the beginning of the level, " \
-                    "Captain Redundant."
+                send_to_console("You're already at the beginning of the level, " \
+                    "Captain Redundant.")
                 continue
             if rpg.check_backtrack():
-                print "You successfully find your way back " \
-                    "to the beginning of the level."
+                send_to_console("You successfully find your way back " \
+                    "to the beginning of the level.")
                 rpg.destination("start")
                 continue
             else:
-                print "On your way back, you get lost! You find yourself " \
-                    "in another room of the dungeon..."
+                send_to_console("On your way back, you get lost! You find yourself " \
+                    "in another room of the dungeon...")
                 rpg.destination("dungeon")
                 rpg.explore()
                 continue
@@ -126,8 +127,8 @@ def dungeon(rpg):
 
 def deadchar(rpg):
     """Deal with character death"""
-    print "What would you like to do? Options: "\
-        "Generate (a new character), Load, Quit"
+    send_to_console("What would you like to do? Options: "\
+        "Generate (a new character), Load, Quit")
     dothis = choose_from_list("Dead> ", ["Generate", "Load", "Quit"],
         character=rpg.character, rand=False, allowed=["sheet", "help"])
     if dothis == "Quit":
@@ -137,26 +138,26 @@ def deadchar(rpg):
     if dothis == "Load":
         rpg = load(rpg)
         if not rpg:
-            print "I'm sorry, that didn't work... maybe you deleted " \
-                "the save file? Anyway..."
+            send_to_console("I'm sorry, that didn't work... maybe you deleted " \
+                "the save file? Anyway...")
             deadchar(rpg)
             return
         else:
-            print "Game successfully loaded!"
-            print "You begin in the town square."
+            send_to_console("Game successfully loaded!")
+            send_to_console("You begin in the town square.")
             rpg.character.tellchar()
             rpg.destination("town")
             town(rpg)
             return
     if dothis == "Generate":
         rpg = generate(rpg)
-        print "You begin in the town square."
+        send_to_console("You begin in the town square.")
         town(rpg)
         return
         
 def generate(rpg):
     """Wrapper for making a new character"""
-    print "Time to make a new character! It'll be saved under this player name."
+    send_to_console("Time to make a new character! It'll be saved under this player name.")
     rpg.character.chargen(rpg.player_name)
     save(rpg)
     msg = "In the town of North Granby, the town militia has recently " \
@@ -165,34 +166,33 @@ def generate(rpg):
         "resident adventurer, the Mayor of North Granby (a retired " \
         "adventurer by the name of Sir Percival) has recruited you to clear " \
         "out the dungeon."
-    print textwrap.fill(msg)
+    send_to_console(textwrap.fill(msg))
     return rpg
 
 def main():
     """Initialize and start the game session"""
-    print logo
-    print textwrap.fill("Welcome to Percival's Quest! This is a solo random " \
+    send_to_console(logo)
+    send_to_console(textwrap.fill("Welcome to Percival's Quest! This is a solo random " \
         "dungeoncrawl rpg written in python by the ever-resourceful (and " \
-        "extremely humble) sirpercival.")
-    player_name = raw_input(color.BOLD+"Please enter your player name> "+
-        color.END)
+        "extremely humble) sirpercival."))
+    player_name = get_user_input("Please enter your player name> ")
     msg = "Welcome, "+player_name+"!"
     rpg_instance = pqr.PQ_RPG(player_name)
     newgame = False
     temp_rpg = load(rpg_instance)
     if temp_rpg:
         msg += " You currently have a game saved. Would you like to load it?"
-        print msg
-        loadit = raw_input("Load (y/n)> ")
+        send_to_console(msg)
+        loadit = get_user_input("Load (y/n)> ", options = ['Yes','No','Y','N','Load'])
         if loadit.lower() in ["y", "yes", "load"]:
             rpg_instance = temp_rpg
             del temp_rpg
-            print "Game successfully loaded."
+            send_to_console("Game successfully loaded.")
             rpg_instance.character.tellchar()
         else:
             newgame = True
     else:
-        print msg + " You don't have a character saved..."
+        send_to_console(msg + " You don't have a character saved...")
         newgame = True
     if newgame:
         rpg_instance = generate(rpg_instance)
@@ -200,14 +200,14 @@ def main():
     msg += "(Please note that at almost any prompt, you can choose Sheet " \
         "to look at your charsheet, Equip to change your equipment, Help " \
         "to enter the help library, or Quit to quit.)"
-    print textwrap.fill(msg)
+    send_to_console(textwrap.fill(msg))
     msg = "To the East is your humble abode and warm bed; " \
         "to the North, the General Store where various and sundry goods " \
         "may be purchased; to the West, the Questhall where the mayor " \
         "makes his office; to the Northwest, the local Shrine to the " \
         "Unknowable Gods; and to the South lie the gates of the city, " \
         "leading out to the Dungeon."
-    print textwrap.fill(msg)
+    send_to_console(textwrap.fill(msg))
     town(rpg_instance)
     
 if __name__ == '__main__':

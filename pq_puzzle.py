@@ -7,7 +7,7 @@ for Percival's Quest RPG
 #  part of Percival's Quest RPG
 
 from pq_namegen import riddlegen, numgen
-from pq_utilities import atk_roll, choose_from_list, get_user_input, color
+from pq_utilities import atk_roll, choose_from_list, get_user_input, color, send_to_console
 from pq_equipment import pq_treasuregen, pq_item_type
 import random, time, json, textwrap
 
@@ -59,7 +59,7 @@ class PQ_Puzzle(object):
             " or undergo a Trial of Being, for Knowledge. Choose your prize," \
             " and choose well.'"+color.END
         msg3 = "(Your choices are Gold, Riches, Knowledge, or Skip.)"
-        print textwrap.fill(msg1 + msg2), '\n', msg3
+        send_to_console(textwrap.fill(msg1 + msg2)+'\n'+msg3)
         choice = choose_from_list("Choice> ", ["gold", "riches", "knowledge", \
             "skip"], character=self.char, allowed=['sheet', 'help', 'equip'])
         self.choice = choice
@@ -71,7 +71,7 @@ class PQ_Puzzle(object):
                 "are polite, I may be persuaded to give you a hint... Now, " \
                 "begin; you have 10 chances remaining.'" + color.END
             msg2 = "(Guess should be ####)"
-            print textwrap.fill(msg), '\n', msg2
+            send_to_console(textwrap.fill(msg)+'\n'+msg2)
             self.check_numguess()
             return
         elif self.choice == "riches":
@@ -82,8 +82,8 @@ class PQ_Puzzle(object):
                 "poorly, I may decide to give you a hint. Here is the riddle: "
             msg2 = "Now, begin your guess. You have three chances remaining.'"\
                 + color.END
-            print textwrap.fill(msg), '\n', textwrap.fill(self.riddle), '\n', \
-                msg2
+            send_to_console(textwrap.fill(msg), '\n', textwrap.fill(self.riddle), \
+                '\n', msg2)
             self.check_riddleguess()
             return
         elif self.choice == "knowledge":
@@ -91,7 +91,7 @@ class PQ_Puzzle(object):
                 + color.BOLD + "'As you wish. The Trial consists of three " \
                 "tests; if you succeed at all three, you will be rewarded." \
                 " The first test will begin... now.'" + color.END
-            print textwrap.fill(msg)
+            send_to_console(textwrap.fill(msg))
             self.trialofbeing()
             return
         elif self.choice == "skip":
@@ -103,7 +103,7 @@ class PQ_Puzzle(object):
             color.BOLD + "'You have been found wanting. How disappointing.'" \
             + color.END + " Then it vanishes, leaving no trace that this " \
             "room of the dungeon was ever occupied."
-        print textwrap.fill(msg)
+        send_to_console(textwrap.fill(msg))
         if self.choice == "knowledge" and self.damage > 0:
             self.char.ouch(self.damage)
             msg = "The Trial was extremely taxing; you take " + \
@@ -111,13 +111,13 @@ class PQ_Puzzle(object):
             if self.char.hitpoints[0] <= 0:
                 msg += "..."
                 self.char.dead = True
-                print 'Sorry, ' + self.char.player + ', you have died. ' \
+                send_to_console('Sorry, ' + self.char.player + ', you have died. ' \
                     'You can load from your last save, quit, or make a new ' \
-                    'character.', '\n'
+                    'character.', '\n')
             else:
                 msg += ", and have " + str(self.char.hitpoints[0]) + \
                     " hit points remaining."
-            print msg, '\n'
+            send_to_console(msg, '\n')
         self.finished = True
         return
     
@@ -127,11 +127,11 @@ class PQ_Puzzle(object):
             "'You have proven worthy, and now may receive your reward.'" + \
             color.END + " Then it vanishes, leaving no trace that this room " \
             "of the dungeon was ever occupied."
-        print textwrap.fill(msg)
+        send_to_console(textwrap.fill(msg))
         msg = "You gain "
         if self.choice == "gold":
             msg += str(self.gold) + " gp!"
-            print msg, '\n'
+            send_to_console(msg, '\n')
             self.char.defeat_enemy(0, {'gp':self.gold})
         if self.choice == "riches":
             typ = pq_item_type(self.riches)
@@ -139,11 +139,11 @@ class PQ_Puzzle(object):
             if typ[0] == "ring":
                 msg += "Ring of "
             msg += self.riches + "!"
-            print msg, '\n'
+            send_to_console(msg, '\n')
             self.char.defeat_enemy(0, {typ[0]:self.riches})
         if self.choice == "knowledge":
             msg += str(self.knowledge) + " experience!"
-            print msg, '\n'
+            send_to_console(msg, '\n')
             self.char.defeat_enemy(self.knowledge, {})
             if self.char.level[0] >= 10 * self.char.level[1]:
                 self.char.levelup()
@@ -157,18 +157,18 @@ class PQ_Puzzle(object):
         with open('data/pq_trialmsg.json') as f:
             trials = json.load(f)
         for i, s in enumerate(sta):
-            time.sleep(1)
-            print textwrap.fill("The " + ("first", "second", "third")[i] + \
-                " challenge begins. " + trials['tests'][s]), '\n'
+            time.sleep(0.5)
+            send_to_console(textwrap.fill("The " + ("first", "second", "third")[i] + \
+                " challenge begins. " + trials['tests'][s]), '\n')
             result = atk_roll([0, self.char.stats[pq_stats[s]]], \
                 [0, self.trial_num], 0, 0)
             if result < 0:
-                print trials['lose'][s], '\n'
+                send_to_console(trials['lose'][s], '\n')
                 self.damage = result
                 self.failure()
                 return
             else:
-                print trials['win'][s], '\n'
+                send_to_console(trials['win'][s], '\n')
                 self.knowledge += self.trial_num
         self.success()
         
@@ -190,8 +190,8 @@ class PQ_Puzzle(object):
             if badguess:
                 badguess_message = ["your guess should be one word only.'", \
                     "what you said isn't even a word.'"][badguess - 1]
-                print "The " + self.thing + " frowns. 'I do not know why you " \
-                    "would waste a guess on that... " + badguess_message, '\n'
+                send_to_console("The " + self.thing + " frowns. 'I do not know why you " \
+                    "would waste a guess on that... " + badguess_message, '\n')
                 continue
             #are they right?
             if guess.upper() == self.answer:
@@ -206,7 +206,7 @@ class PQ_Puzzle(object):
                 str(self.riddleguess) + " chance" + pl + " remaining. "
             msg += "Here is a hint to help you: the answer to the riddle " \
                 "is a single word with " + str(answer_length) + " letters."
-            print msg, '\n'
+            send_to_console(msg, '\n')
         self.failure()
         return
         
@@ -226,8 +226,8 @@ class PQ_Puzzle(object):
                 except ValueError:
                     badguess = True
             if badguess:
-                print "The " + self.thing + " frowns. 'I do not know why " \
-                    "you would waste a guess on that.'", '\n'
+                send_to_console("The " + self.thing + " frowns. 'I do not know why " \
+                    "you would waste a guess on that.'", '\n')
                 continue
             copy_answer = [i for i in self.numcode]
             copy_guess = [i for i in guess]
@@ -283,8 +283,8 @@ class PQ_Puzzle(object):
             else:
                 nummsg = "You have one guess remaining. Use it wisely.'" \
                     + color.END
-            print textwrap.fill(" ".join([progmsg[progress], hint, nummsg])), \
-                '\n'
+            send_to_console(textwrap.fill(" ".join([progmsg[progress], hint, \
+                nummsg])), '\n')
         self.failure()
         return
         

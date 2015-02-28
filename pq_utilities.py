@@ -7,6 +7,7 @@ for Percival's Quest RPG
 #  part of Percival's Quest RPG
 
 import json, textwrap, random, shelve, os
+from time import sleep
 readl = True
 try:
     import readline
@@ -48,7 +49,7 @@ def atk_roll(attack, defense, attack_adjust = 0, defense_adjust = 0):
 
 def confirm_quit():
     """Do you really want to quit? DO YA, PUNK???"""
-    print "Remember that your last save was the last time you rested."
+    send_to_console("Remember that your last save was the last time you rested.")
     choice = raw_input("Are you sure you want to quit (y/n)? ")
     if choice.lower() in ["y", "yes", "quit"]:
         quit()
@@ -60,7 +61,7 @@ def choose_from_list(prompt, options, rand = False, character = None, \
     while choice.lower() not in [i.lower() for i in options]:
         if rand and choice.lower() == "random":
             return random.choice(options)
-        print "Sorry, I didn't understand your choice. Try again?"
+        send_to_console("Sorry, I didn't understand your choice. Try again?")
         choice = get_user_input(prompt, character, options = options + allowed)
     for i in options:
         if i.lower() == choice.lower():
@@ -114,20 +115,24 @@ def get_user_input(prompt, character = None, options = ["Quit"]):
         return get_user_input(prompt, character = character, options = options)
     return user_input
 
+def send_to_console(*output):
+    sleep(0.5)
+    print ''.join(output)
+
 def pq_help():
     """Open the help prompt and, y'know, help."""
     with open('data/pq_help_strings.json') as f:
         help_topics = json.load(f)
-    print textwrap.fill("Help topics: " + ", ".join(sorted(help_topics.keys())) + \
-        "; Exit to return to game.")
+    send_to_console(textwrap.fill("Help topics: " + ", ".join(sorted(help_topics.keys())) + \
+        "; Exit to return to game."))
     topic = choose_from_list("Help> ", help_topics.keys() + ["Exit"], \
         allowed = [])
     while topic != "Exit":
-        print color.BOLD + "TOPIC: " + topic.upper() + color.END
+        send_to_console(color.BOLD + "TOPIC: " + topic.upper() + color.END)
         if topic not in ["Armor", "Weapons", "Races", "Classes", "Feats"]:
-            print textwrap.fill(help_topics[topic])
+            send_to_console(textwrap.fill(help_topics[topic]))
         else:
-            print help_topics[topic]
+            send_to_console(help_topics[topic])
         topic = choose_from_list("Help> ", help_topics.keys() + ["Exit"], \
             allowed = [])
 
@@ -161,6 +166,9 @@ def load(rpg):
     """Load it, baby!"""
     savedb = shelve.open(savefile)
     if rpg.player_name not in savedb:
+        savedb.close()
         return None
     else:
-        return savedb[rpg.player_name]
+        rpgout = savedb[rpg.player_name]
+        savedb.close()
+        return rpgout

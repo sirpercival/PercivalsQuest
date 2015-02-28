@@ -13,7 +13,7 @@ from pq_combat import PQ_Combat
 from pq_puzzle import PQ_Puzzle
 from pq_equipment import pq_treasuregen, pq_item_worth, pq_gear, pq_magic
 from pq_utilities import choose_from_list, color, get_user_input, \
-    collapse_stringlist, save
+    collapse_stringlist, save, send_to_console
 from pq_namegen import sandgen, godgen
 
 def display_itemlist(itemlist, sell = False):
@@ -39,7 +39,7 @@ class PQ_RPG(object):
     """RPG instance declaration"""
     def __init__(self, player):
         """Initialize the game session."""
-        self.character = PQ_Character()
+        self.character = PQ_Character(rpg)
         self.player_name = player
         self.questlevel = 0
         self.dungeonlevel = 1
@@ -93,9 +93,8 @@ class PQ_RPG(object):
         self.quest.gen(level)
 
     def addshopitem(self):
-        """Add an item to the shop. Currently, 
-        this algorithm makes the shop suck."""
-        shop_items = pq_treasuregen(self.questlevel)
+        """Add an item to the shop."""
+        shop_items = pq_treasuregen(self.character.level[1])
         for i in shop_items.keys():
             if shop_items[i] and i != 'gp' and shop_items[i] not in self.store:
                 self.store.append(shop_items[i])
@@ -108,7 +107,7 @@ class PQ_RPG(object):
                 "and defeat the monster? No? Well, then, get back out there!" \
                 " I suggest you try Dungeon level " + str(self.questlevel) + \
                 ".'" + color.END
-            print textwrap.fill(msg)
+            send_to_console(textwrap.fill(msg))
             return
         self.questlevel += 1
         self.init_quest(self.questlevel)
@@ -119,23 +118,23 @@ class PQ_RPG(object):
                 "to do. See, there are rumors of a horrible creature, " \
                 "called " + self.quest.name + ", roaming the dungeon. " + \
                 self.quest.description + "This monstrosity " \
-                "draws its power from " + self.quest.artifact[0] + "," + \
+                "draws its power from " + self.quest.artifact[0] + ", " + \
                 self.quest.artifact[1].lower() + " I need you to go into " \
                 "the dungeon, kill that beast, and bring back the artifact " \
                 "so my advisors can destroy it. The townspeople will be " \
                 "very grateful, and you'll receive a substantial reward! " \
                 "Now, get out of here and let me finish my paperwork.'" \
                 + color.END
-            print textwrap.fill(msg1)
+            send_to_console(textwrap.fill(msg1))
         elif self.character.queststatus == "complete":
-            print "Mayor Percival looks up excitedly. " + color.BOLD + \
+            send_to_console("Mayor Percival looks up excitedly. " + color.BOLD + \
                 "'You have it! Well, thank my lucky stars. " \
                 "You're a True Hero, " + self.character.name[0] + "!'" + \
-                color.END
+                color.END)
             exp = 5 * (self.questlevel - 1)
             gold = int(random.random() * 2 + 1) * exp
-            print "You gain " + str(exp) + " experience and " + str(gold) \
-                + " gp!"
+            send_to_console("You gain " + str(exp) + " experience and " + str(gold) \
+                + " gp!")
             self.character.complete_quest(exp, gold)
             if self.character.level[0] >= self.character.level[1] * 10:
                 self.character.levelup()
@@ -148,7 +147,7 @@ class PQ_RPG(object):
                 ", " + self.quest.artifact[1] + " Will you take this quest, " \
                 "same terms as last time (adjusting for inflation)? Yes? " \
                 "Wonderful! Now get out.'" + color.END
-            print textwrap.fill(msg1 + msg2 + msg3)
+            send_to_console(textwrap.fill(msg1 + msg2 + msg3))
         self.character.queststatus = "active"
         
     def godownstairs(self):
@@ -157,7 +156,8 @@ class PQ_RPG(object):
         self.dungeonlevel += 1
         if self.dungeonlevel > self.maxdungeonlevel:
             self.maxdungeonlevel = self.dungeonlevel
-        print "You head down the stairs to level " + str(self.dungeonlevel)
+            self.addshopitem()
+        send_to_console("You head down the stairs to level " + str(self.dungeonlevel))
         return
 
     def explore(self):
@@ -165,16 +165,16 @@ class PQ_RPG(object):
         room = random.choice([random.randint(1, 20) for i in range(6)])
         self.whereareyou = "dungeon"
         if room <= 2:
-            print "You find a flight of stairs, leading down! " \
-                "Go down, or Stay?"
+            send_to_console("You find a flight of stairs, leading down! " \
+                "Go down, or Stay?")
             choice = choose_from_list("Stairs> ", \
                 ["down", "go down", "stay"], rand=False, \
                 character=self.character, allowed=['sheet', 'help', 'equip'])
             if choice != "stay":
                 self.godownstairs()
             else:
-                print "You decide to stick around on level " + \
-                    str(self.dungeonlevel) + " a little while longer."
+                send_to_console("You decide to stick around on level " + \
+                    str(self.dungeonlevel) + " a little while longer.")
             return
         elif room > 2 and room <= 5:
             msg = "You found a chest! "
@@ -193,20 +193,24 @@ class PQ_RPG(object):
                 msg += "Sadly, it was empty."
             else:
                 msg += "Inside, you find " + ", ".join(loot) + "."
-            print msg
+            send_to_console(msg)
             return
         elif room > 5 and room <= 8:
             msg = "The room echoes with a hollow emptiness, and you " \
                 "reflect on the vagaries of living life alone... Then " \
                 "you eat" + sandgen() + ", and get ready to kill more things."
-            print textwrap.fill(msg), "\nYou regain " + \
-                str(self.dungeonlevel) + " hp and sp!"
+            send_to_console(textwrap.fill(msg), "\nYou regain " + \
+                str(self.dungeonlevel) + " hp and sp!")
             self.character.sammich(self.dungeonlevel)
             return
         elif room > 8 and room <= 10:
             self.whereareyou = "puzzle"
             self.puzzle = PQ_Puzzle(self.dungeonlevel, self.character)
             self.puzzle.puzzleinit()
+        #elif room > 10 and room <= 12:
+        #    self.whereareyou = "trap"
+        #
+        #elif room > 12:
         elif room > 10:
             msg = "You've stumbled on an enemy! It seems to be... "
             questcheck = self.maxdungeonlevel - self.questlevel
@@ -228,15 +232,15 @@ class PQ_RPG(object):
                 msg += ' You get the jump on it.'
             else:
                 msg += ' It gets the jump on you.'
-            print msg
+            send_to_console(msg)
             self.whereareyou = "combat"
             self.combat.advance_turn()
             self.combat = None
 
     def visit_shop(self):
         """Wrapper for shopping"""
-        print "The shopkeep greets you cheerfully. 'Welcome, hero! " \
-            "What can I do for you?'"
+        send_to_console("The shopkeep greets you cheerfully. 'Welcome, hero! " \
+            "What can I do for you?'")
         self.transactions()
     
     def transactions(self):
@@ -249,7 +253,7 @@ class PQ_RPG(object):
             msg1 += "Nothing!"
         else:
             msg1 += " ".join(inventory) + "."
-        print textwrap.fill(msg1)
+        send_to_console(textwrap.fill(msg1))
         msg2 = "Your current loot bag contains " + \
             str(self.character.loot['gp']) + " gp, and: "
         lootbag = display_itemlist(self.character.loot['items'], True)
@@ -259,8 +263,8 @@ class PQ_RPG(object):
             msg2 += "Nothing!"
         else:
             msg2 += " ".join(lootbag) + "."
-        print textwrap.fill(msg2)
-        print "Buy Item# [Amount], Sell Item# [Amount], or Leave."
+        send_to_console(textwrap.fill(msg2))
+        send_to_console("Buy Item# [Amount], Sell Item# [Amount], or Leave.")
         buylist = [" ".join(["buy", str(i), str(j)]) for i in range(1, \
             len(inventory) + 1) for j in range(1, self.store.count( \
             inventory_basic[i - 1]) + 1)] + ["buy " + str(i) for i \
@@ -272,7 +276,7 @@ class PQ_RPG(object):
         choice = choose_from_list("Shop> ", buylist + sellist + ["leave"], \
             rand=False, character=self.character, allowed=['sheet', 'help'])
         if choice == "leave":
-            print "You leave the shop and head back into the town square.\n"
+            send_to_console("You leave the shop and head back into the town square.\n")
             return
         else:
             choice = choice.split()
@@ -289,20 +293,20 @@ class PQ_RPG(object):
             except ValueError:
                 count = 1
             if not worth:
-                print "I'm sorry, I don't know what that item is. " \
-                    "Can you try again?"
+                send_to_console("I'm sorry, I don't know what that item is. " \
+                    "Can you try again?")
             elif choice[0] == "buy":
                 if worth > self.character.loot['gp']:
-                    print "You don't have enough gold to buy that, cheapskate!"
+                    send_to_console("You don't have enough gold to buy that, cheapskate!")
                 else:
                     pl = "" if count == 1 else "s"
-                    print "You buy " + str(count) + " " + item + pl + "!"
+                    send_to_console("You buy " + str(count) + " " + item + pl + "!")
                     for i in range(count):
                         self.character.buy_loot(item, worth)
                         self.store.remove(item)
             elif choice[0] == "sell":
                 pl = "" if count == 1 else "s"
-                print "You sell " + str(count) + " " + item + pl + "!"
+                send_to_console("You sell " + str(count) + " " + item + pl + "!")
                 self.character.sell_loot(item, count)
             self.transactions()
         
@@ -314,14 +318,14 @@ class PQ_RPG(object):
             + self.gods[0] + ", which offers Enlightenment on a sliding " \
             "tithe scale; and one (choice 2) to " + self.gods[1] + ", " \
             "which promises Materialism for a single lump sum of 30,000gp."
-        print textwrap.fill(msg), "\nChoice# Offering, or Leave"
+        send_to_console(textwrap.fill(msg)+"\nOptions: Choice# Offering, or Leave")
         choice = get_user_input("Shrine> ", character = self.character, \
             options = ["leave", "sheet", "equip", "help"]).lower()
         while choice != "leave":
             choice = choice.split()
             if len(choice) < 2 or (choice[0] != "1" and choice[0] != "2"):
-                print "You need to pick both an altar number (1 or 2) " \
-                    "and an offering amount."
+                send_to_console("You need to pick both an altar number (1 or 2) " \
+                    "and an offering amount.")
                 choice = get_user_input("Shrine> ", \
                     character = self.character, \
                     options = ["leave", "sheet", "equip", "help"]).lower()
@@ -329,8 +333,8 @@ class PQ_RPG(object):
             try:
                 offering = int(choice[1])
             except ValueError:
-                print "You need to pick both an altar number (1 or 2) and " \
-                    "an offering amount."
+                send_to_console("You need to pick both an altar number (1 or 2) and " \
+                    "an offering amount.")
                 choice = get_user_input("Shrine> ", \
                     character = self.character, \
                     options = ["leave", "sheet", "equip", "help"]).lower()
@@ -340,22 +344,22 @@ class PQ_RPG(object):
             choice = get_user_input("Shrine> ", \
                     character = self.character, \
                     options = ["leave", "sheet", "equip", "help"]).lower()
-        print "You leave the shrine and head back into the town square.", '\n'
+        send_to_console("You leave the shrine and head back into the town square.\n")
         
     def offering(self, choice, amount):
         """Give money to tha GODZ"""
         if amount < 0:
-            print textwrap.fill("You can't take money out of the offering " \
+            send_to_console(textwrap.fill("You can't take money out of the offering " \
                 "bowl, not without offending " + self.gods[int(choice) - 1] + \
-                ", which you do NOT want to do.")
+                ", which you do NOT want to do."))
             return
         elif amount == 0:
-            print "Nothing ventured, nothing gained."
+            send_to_console("Nothing ventured, nothing gained.")
             return
         elif amount > self.character.loot['gp']:
-            print textwrap.fill("You don't have enough gold for that, man. " \
+            send_to_console(textwrap.fill("You don't have enough gold for that, man. " \
                 "Go back to the dungeon and make some scratch! " \
-                "(Or at least, put less in the offering bowl.)")
+                "(Or at least, put less in the offering bowl.)"))
             return
         if choice == '1':
             try:
@@ -373,7 +377,7 @@ class PQ_RPG(object):
                 "attention from " + self.gods[0] + "; this may not actually " \
                 "be a good thing, but at least you gain " + str(netexp) + \
                 " experience."
-            print textwrap.fill(msg)
+            send_to_console(textwrap.fill(msg))
             self.character.defeat_enemy(netexp, {'gp':-amount})
             if self.character.level[0] >= self.character.level[1] * 10:
                 self.character.levelup()
@@ -383,7 +387,7 @@ class PQ_RPG(object):
                 msg = "Nothing happens except for a feeling of insufficient " \
                     "funds... you scoop the gold back out of the offering " \
                     "bowl before anyone sees you, cheapskate."
-                print textwrap.fill(msg)
+                send_to_console(textwrap.fill(msg))
                 return
             typechoice = random.choice([random.randint(0, 2) \
                 for i in range(6)])
@@ -415,5 +419,5 @@ class PQ_RPG(object):
             if type1a == "ring":
                 msg += "Ring of "
             msg += riches + " in your lootbag!"
-            print textwrap.fill(msg)
+            send_to_console(textwrap.fill(msg))
             return

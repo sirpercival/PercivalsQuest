@@ -7,7 +7,7 @@ and the library for calling them by name.
 #  pq_skills.py
 #  part of Percival's Quest RPG
 
-from pq_utilities import atk_roll
+from pq_utilities import atk_roll, send_to_console
 import random
 
 pq_reverse_stats = {0:"Attack", 1:"Defense", 2:"Reflexes",
@@ -34,7 +34,7 @@ def pq_cure(user, target):
         user.temp['stats'].get("Attack", 0), \
         target.temp['stats'].get("Defense", 0))
     targstring = "You are " if hasattr(user,"player") else "The monster is " 
-    print targstring+"cured for "+str(cure)+" hp! An attack follows."
+    send_to_console(targstring+"cured for "+str(cure)+" hp! An attack follows.")
     return (hit > 0, hit)
 
 def pq_trip(user, target):
@@ -47,7 +47,7 @@ def pq_trip(user, target):
         hit = max([hit/2, 1])
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
-        print targstring + "tripped!"
+        send_to_console(targstring + "tripped!")
         target.temp['condition']["tripped"] = 2
         debuff = max([0, random.choice([random.randint(0, user.stats[5]) \
             for i in range(0, 6)]) + user.temp['stats'].get("Skill", 0)])
@@ -59,7 +59,7 @@ def pq_missile(user, target):
     num_missile = user.level[1]/3 + 1
     targstring = "You send " if hasattr(user, "gear") \
         else "The monster sends "
-    print targstring + str(num_missile) +" missiles!"
+    send_to_console(targstring + str(num_missile) +" missiles!")
     hit = 0
     for i in range(num_missile):
         hit += max([0, atk_roll([0, user.stats[5]], [0, target.stats[2]], \
@@ -132,7 +132,7 @@ def pq_charm(user, target):
     if hit1 > 0 and hit2 > 0:
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
-        print targstring + "charmed!"
+        send_to_console(targstring + "charmed!")
         target.temp['condition']["charmed"] = 4
         return (True, 0)
     return (False, 0)
@@ -145,7 +145,7 @@ def pq_entangle(user, target):
     if hit > 0:
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
-        print targstring + "entangled!"
+        send_to_console(targstring + "entangled!")
         target.temp['condition']["entangled"] = 4
         target.temp_bonus(["Attack", "Defense"], -hit, 4)
         return (True, 0)
@@ -160,7 +160,7 @@ def pq_fear(user, target):
         hit = max([1, hit/2])
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
-        print targstring + "frightened!"
+        send_to_console(targstring + "frightened!")
         target.temp_bonus(["Attack"," Defense"], -hit, 4)
         return (True, 0)
     return (False, 0)
@@ -177,7 +177,7 @@ def pq_dominate(user, target):
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
         targstring2 = "s itself!" if hasattr(user, "gear") else " yourself!"
-        print targstring + "dominated, and attack" + targstring2
+        send_to_console(targstring + "dominated, and attack" + targstring2)
         return (hit > 0, hit)
     return (affect > 0, 0)
     
@@ -193,8 +193,8 @@ def pq_confusion(user, target):
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
         pl= "s" if hasattr(user, "gear") else ""
-        print targstring + "confused, and lose" + pl + " " + str(damage) \
-            + " skill points!"
+        send_to_console(targstring + "confused, and lose" + pl + " " + str(damage) \
+            + " skill points!")
         target.huh(damage)
     return (affect > 0, 0)
     
@@ -202,7 +202,7 @@ def pq_evade(user, target):
     """Buff self with an Evade (+Skill to Defense)"""
     targstring = "You feel " if hasattr(user, "gear") \
         else "The monster feels "
-    print targstring + "more evasive!"
+    send_to_console(targstring + "more evasive!")
     user.temp_bonus(["Defense"], user.stats[5], 4)
     return (True, 0)
     
@@ -216,7 +216,7 @@ def pq_acidspray(user, target):
         debuff = max([hit/2, 1])
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
-        print targstring + "sprayed with acid!"
+        send_to_console(targstring + "sprayed with acid!")
         target.temp_bonus(["Defense"], debuff, 4)
     return (hit > 0, hit)
     
@@ -232,7 +232,7 @@ def pq_telekinesis(user, target):
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
         targstring2 = "s itself!" if hasattr(user, "gear") else " yourself!"
-        print targstring + "manipulated, and attack" + targstring2
+        send_to_console(targstring + "manipulated, and attack" + targstring2)
         return (hit > 0, hit)
     return (affect > 0, 0)
     
@@ -248,7 +248,7 @@ def pq_prismspray(user, target):
     if affect > 0:
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
-        print targstring + effectstring[statpick] + "!"
+        send_to_console(targstring + effectstring[statpick] + "!")
         target.temp_bonus([pq_reverse_stats[statpick]], -affect, 4)
     return (affect > 0, 0)
     
@@ -262,7 +262,7 @@ def pq_burn(user, target):
         
         targstring = "The monster is " if hasattr(user, "gear") \
             else "You are "
-        print targstring + "burning!"
+        send_to_console(targstring + "burning!")
         target.temp['condition']["burning"] = 4
     return (hit > 0, hit)
     
@@ -276,7 +276,7 @@ def pq_leech(user, target):
         cure = max([hit/2, 1])
         targstring = "You drain " if hasattr(user, "gear") \
             else "The monster drains "
-        print targstring + str(cure) + " hit points!"
+        send_to_console(targstring + str(cure) + " hit points!")
         user.cure(cure)
     return (hit > 0, hit)
     
@@ -288,8 +288,8 @@ def pq_bardicknowledge(user, target):
     if random.random() < trigger_chance:
         statstring = sum([[pq_stats_short[i], str(target.stats[i])] \
             for i in range(6)], [])
-        print "You recall learning about this kind of creature!"
-        print "Enemy stats: " + " ".join(statstring)
+        send_to_console("You recall learning about this kind of creature!")
+        send_to_console("Enemy stats: " + " ".join(statstring))
     return
 
 def pq_turning(user, target):
@@ -300,7 +300,7 @@ def pq_turning(user, target):
     if random.random() < trigger_chance:
         target.temp['condition']["turned"] = 2
         targstring = "Enemy is " if hasattr(user, "gear") else "You are "
-        print targstring + "turned!"
+        send_to_console(targstring + "turned!")
     return
 
 def pq_regeneration(user, target):
@@ -309,7 +309,7 @@ def pq_regeneration(user, target):
     user.cure(regen)
     targstring = "You regenerate " if hasattr(user, "gear") else \
         "Enemy regenerates "
-    print targstring + str(regen) + " hitpoints!"
+    send_to_console(targstring + str(regen) + " hitpoints!")
     return
     
 def pq_shapechange(user, target):
@@ -319,7 +319,7 @@ def pq_shapechange(user, target):
     if random.random() < trigger_chance:
         targstring = "You change shape!" if hasattr(user, "gear") else \
             "The enemy changes shape!"
-        print targstring
+        send_to_console(targstring)
         buff = random.randint(1, user.level[1]) if user.level[1] > 1 else 1
         user.temp_bonus(stats, buff, 2)
     return
@@ -331,7 +331,7 @@ def pq_bushido(user, target):
         condition_remove = random.choice(user.temp['condition'].keys())
         targstring = "You shrug" if hasattr(user, "gear") else \
             "The enemy throws"
-        print targstring + " off the " + condition_remove + "condition!"
+        send_to_console(targstring + " off the " + condition_remove + "condition!")
         del user.temp['condition'][condition_remove]
     return
 
@@ -343,7 +343,7 @@ def pq_grace(user, target):
     if random.random() < trigger_chance:
         targstring = "You glow" if hasattr(user, "gear") else \
             "The enemy glows"
-        print targstring + " with divine impetus!"
+        send_to_console(targstring + " with divine impetus!")
         buff = random.randint(1, user.level[1]) if user.level[1] > 1 else 1
         user.temp_bonus(stats, buff, 4)
     return
@@ -371,8 +371,8 @@ def pq_resilience(user, target):
             effectstring += " and "
         effectstring += "1 skill point"
         user.huh(-1)
-    print targstring[0] + "feeling very resilient, and recover" + \
-        targstring[1] + " " + effectstring + "!"
+    send_to_console(targstring[0] + "feeling very resilient, and recover" + \
+        targstring[1] + " " + effectstring + "!")
     return
     
 def pq_stealth(user, target):
@@ -387,7 +387,7 @@ def pq_precog(user, target):
         targstring = "You predict the enemy's actions!" if \
             hasattr(user, "gear") else "The enemy predicts your actions!"
         user.temp_bonus(["Attack", "Defense"], buff, 2)
-        print targstring
+        send_to_console(targstring)
     return
     
 def pq_track(user, target):
@@ -398,7 +398,7 @@ def pq_track(user, target):
         target.temp['condition']["tracked"] = 999
         targstring = "You have tracked the enemy!" if \
             hasattr(user, "gear") else "The enemy has tracked you!"
-        print targstring
+        send_to_console(targstring)
     return
     
 def pq_unarmed(user, target):

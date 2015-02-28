@@ -19,7 +19,7 @@ pq_value = (1, 10, 100, 500, 1000, 5000, 10000, 50000, 100000)
 
 def pq_item_type(item):
     """Determine the item type (ring, armor, weapon, and subtypes therein)"""
-    if item in pq_magic['ring'].keys():
+    if item.lower() in [x.lower() for x in pq_magic['ring'].keys()]:
         return ['ring']
     itemsplit = item.split()
     gear_list = []

@@ -13,6 +13,8 @@ TO DO:
 ~Add passive skills
 ~Add potions
 ~Add traps
+~Add story elements & minigames
+~Add achievements
 
 UPDATE:
 I've added colorama to handle output of bold and colored text, even on Windows machines.

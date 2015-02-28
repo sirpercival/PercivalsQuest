@@ -10,7 +10,7 @@ Declaration for Character object
 #  Part of Percival's Quest RPG
 
 from pq_namegen import web_namegen
-from pq_utilities import choose_from_list, collapse_stringlist, color
+from pq_utilities import choose_from_list, collapse_stringlist, color, send_to_console
 from pq_equipment import pq_gear, pq_magic, pq_item_type, \
     pq_item_rating, pq_item_worth
 import random, textwrap, json
@@ -28,7 +28,7 @@ pq_stats_short = {0:'Atk', 1:'Def', 2:'Ref', 3:'Frt', 4:'Mnd', 5:'Skl'}
 
 class PQ_Character(object):
     """Class for the Character object, aka the PC"""
-    def __init__(self):
+    def __init__(self, the_rpg):
         """Initialize Character instance"""
         self.name = ["", ""] #character, player
         self.level = [0, 1] #exp, level
@@ -46,23 +46,24 @@ class PQ_Character(object):
         self.dead = False
         self.queststatus = "inactive"
         self.charsheetstring = []
+        self.rpg = the_rpg
     
     def chargen(self, player):
         """
         Generate a new character using (possibly random) race, class, 
         and feat choices.
         """
-        print textwrap.fill("It's time to generate a character! At any " \
+        send_to_console(textwrap.fill("It's time to generate a character! At any " \
             "of the prompts below, enter 'random' (no quotes) to use " \
-            "a random choice.")
-        print "Available races: " + ", ".join(sorted(pq_races.keys()))
+            "a random choice."))
+        send_to_console("Available races: " + ", ".join(sorted(pq_races.keys())))
         race = choose_from_list("Race> ", pq_races.keys(), rand=True, \
             character=self, allowed=['sheet', 'help'])
-        print "Available classes: " + ", ".join(sorted(pq_classes.keys()))
+        send_to_console("Available classes: " + ", ".join(sorted(pq_classes.keys())))
         clas = choose_from_list("Class> ", pq_classes.keys(), rand=True, \
             character=self, allowed=['sheet', 'help'])
         nfeat = 2 if race.lower() == "human" else 1
-        print "Available feats: " + ", ".join(sorted(pq_feats.keys()))
+        send_to_console("Available feats: " + ", ".join(sorted(pq_feats.keys())))
         feats = []
         for i in range(nfeat):
             feat = choose_from_list("Feat> ", pq_feats.keys(), rand=True, \
@@ -106,21 +107,21 @@ class PQ_Character(object):
         
     def tellchar(self):
         """Print out the character sheet"""
-        print color.BOLD + color.GREEN + self.name[0] + color.END + \
-            ' (Player: ' + self.name[1] + ')'
-        print color.BOLD + ' '.join([self.raceclass[0].capitalize(), \
-            self.raceclass[1].capitalize(), str(self.level[1])]) + color.END
+        send_to_console(color.BOLD + color.GREEN + self.name[0] + color.END + \
+            ' (Player: ' + self.name[1] + ')')
+        send_to_console(color.BOLD + ' '.join([self.raceclass[0].capitalize(), \
+            self.raceclass[1].capitalize(), str(self.level[1])]) + color.END)
         statstring = sum([[color.BOLD + pq_stats_short[i] + color.END, \
             str(self.stats[i])] for i in range(0,6)], [])
         feats = collapse_stringlist(self.feats, True, True)
         feats = ', '.join(sorted(feats))
-        print '; '.join([' '.join(statstring), color.BOLD + 'hp ' + \
+        send_to_console('; '.join([' '.join(statstring), color.BOLD + 'hp ' + \
             color.END + str(self.hitpoints[0]) + '/' + \
             str(self.hitpoints[1]), color.BOLD + 'sp ' + color.END + \
             str(self.skillpoints[0]) + '/' + str(self.skillpoints[1]), \
             color.BOLD + 'exp ' + color.END + str(self.level[0]) + '/' + \
-            str(self.level[1]*10)])
-        print textwrap.fill(feats)
+            str(self.level[1]*10)]))
+        send_to_console(textwrap.fill(feats))
         if not self.gear['armor']['name']:
             armor = color.BOLD + 'Armor:' + color.END + ' None (0)'
         else:
@@ -137,8 +138,8 @@ class PQ_Character(object):
             ring = color.BOLD + 'Ring:' + color.END + ' None'
         else:
             ring = color.BOLD + 'Ring:' + color.END + ' ' + self.gear['ring']
-        print '; '.join([color.BOLD + 'Skills: ' + color.END + \
-            ', '.join(self.skill), armor, weapon, ring])
+        send_to_console('; '.join([color.BOLD + 'Skills: ' + color.END + \
+            ', '.join(self.skill), armor, weapon, ring]))
         lootbag = collapse_stringlist(self.loot['items'], True, True)
         for i, f in enumerate(lootbag):
             for l in f.split():
@@ -148,8 +149,8 @@ class PQ_Character(object):
             lootbag = 'None'
         else:
             lootbag = ', '.join(lootbag)
-        print textwrap.fill(str(self.loot['gp']) + \
-            ' gp; loot: ' + lootbag), '\n'
+        send_to_console(textwrap.fill(str(self.loot['gp']) + \
+            ' gp; loot: ' + lootbag)+'\n')
             
     def sheetstring(self):
         """Return a string containing the character sheet"""
@@ -206,9 +207,9 @@ class PQ_Character(object):
         that you get every level."""
         self.level[0] -= self.level[1] * 10
         self.level[1] += 1
-        print "You have leveled up! Please choose a feat; if you would like " \
-            "one randomly chosen for you, enter Random."
-        print "Available feats: " + ", ".join(pq_feats.keys())
+        send_to_console("You have leveled up! Please choose a feat; if you would like " \
+            "one randomly chosen for you, enter Random.")
+        send_to_console("Available feats: " + ", ".join(pq_feats.keys()))
         feat_choice = choose_from_list("Feat> ", pq_feats.keys(), rand=True, \
             character=self, allowed=['sheet', 'help', 'equip'])
         if feat_choice.lower() in 'improvedinitiative':
@@ -224,7 +225,8 @@ class PQ_Character(object):
         self.skillpoints[1] += 2
         self.combat['atk'] = [self.gear['weapon']['rating'], self.stats[0]]
         self.combat['dfn'] = [self.gear['armor']['rating'], self.stats[1]]
-        print "Level up complete!"
+        self.rpg.addshopitem()
+        send_to_console("Level up complete!")
         self.tellchar()
     
     def sleep(self):
@@ -267,28 +269,28 @@ class PQ_Character(object):
     def equip(self):
         """Equip an item, unequipping extant item if necessary."""
         if not self.loot['items']:
-            print "You have nothing to equip!"
+            send_to_console("You have nothing to equip!")
             return
-        print "What would you like to equip?"
+        send_to_console("What would you like to equip?")
         lootbag = ['Ring of ' + i if i in pq_magic['ring'].keys() \
             else i for i in self.loot['items']]
         lootbag_basic = collapse_stringlist(lootbag, sortit=True, \
             addcounts=False)
-        print textwrap.fill("Lootbag: " + \
+        send_to_console(textwrap.fill("Lootbag: " + \
             ", ".join(collapse_stringlist(lootbag, sortit=True, \
-            addcounts=True)))
+            addcounts=True))))
         equipment = choose_from_list("Equip> ", lootbag_basic, rand=False, \
             character=self, allowed=['sheet', 'help'])
         oldequip = self.changequip(equipment)
-        print equipment + " equipped!"
+        send_to_console(equipment + " equipped!")
         if oldequip:
-            print oldequip + " unequipped!"
+            send_to_console(oldequip + " unequipped!")
         return
     
     def changequip(self, equipment):
         equipment = equipment.replace('Ring of ', '')
         if equipment not in self.loot['items']:
-            print equipment, self.loot['items']
+            send_to_console(equipment, self.loot['items'])
             return
         itemtype = pq_item_type(equipment)
         oldequip = ''
