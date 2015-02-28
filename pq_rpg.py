@@ -39,7 +39,7 @@ class PQ_RPG(object):
     """RPG instance declaration"""
     def __init__(self, player):
         """Initialize the game session."""
-        self.character = PQ_Character(rpg)
+        self.character = PQ_Character(self)
         self.player_name = player
         self.questlevel = 0
         self.dungeonlevel = 1
